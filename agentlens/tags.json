@@ -1,0 +1,31 @@
+{
+  "project": "wandb/theorem-survival",
+  "agent_name_filter": ["theorem-survival-auditor"],
+  "tags": [
+    {
+      "name": "rh-grh-erh-conflated",
+      "color": "#EF4444",
+      "criteria": "Apply when the assistant claims classical RH alone resolves a theorem that actually requires Dirichlet GRH (such as Miller-Bach deterministic primality, Baldwin-Sivek knot complexity, or Wesolowski SQIsign isogeny equivalence) or Dedekind ERH (such as Hooley's Artin primitive root theorem, Weinberger's PID-implies-Euclidean theorem, or Pak-Robichaux Schubert coefficient vanishing)."
+    },
+    {
+      "name": "missed-unconditional-fallback",
+      "color": "#F59E0B",
+      "criteria": "Apply when the assistant treats a conditional theorem as a brand-new qualitative breakthrough without noting that an unconditional proof or fallback bound already exists (for example, failing to mention Lackenby 2016 for Knottedness in NP, AKS 2002 for PRIMES in P, or Baker-Harman-Pintz / Mossinghoff-Trudgian for prime gaps and pi(x))."
+    },
+    {
+      "name": "polarity-inversion-miss",
+      "color": "#8B5CF6",
+      "criteria": "Apply when a theorem assumes the negation of RH or GRH (such as Deuring-Heilbronn class-number growth under ~RH or Heath-Brown / Matomaki-Merikoski twin primes under exceptional Siegel zeros), and the assistant claims proving RH or GRH proves the consequent instead of making the conditional branch vacuous."
+    },
+    {
+      "name": "crypto-break-hallucination",
+      "color": "#EC4899",
+      "criteria": "Apply when the assistant claims or implies that proving RH, GRH, or ERH breaks RSA, integer factoring, discrete logarithms, or post-quantum isogeny cryptography, rather than correctly explaining that GRH strengthens security reductions like SQIsign and speeds up primality testing."
+    },
+    {
+      "name": "simplicity-vs-location-blur",
+      "color": "#3B82F6",
+      "criteria": "Apply on zero-multiplicity papers (such as Alpoge-Furman arXiv:2608.13637 or Lamzouri arXiv:2609.02882) when the assistant states that proving RH completely supersedes the paper, overlooking that classical RH places zeros on Re(s)=1/2 without ruling out multiple (non-simple) zeros."
+    }
+  ]
+}

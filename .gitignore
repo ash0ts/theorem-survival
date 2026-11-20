@@ -1,0 +1,12 @@
+node_modules/
+dist/
+out/
+wandb/
+weave/
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+*.tsbuildinfo
+.env
+.env.*
