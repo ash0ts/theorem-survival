@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Log the paired auditor-v1-naive vs auditor-v2-guarded EvalTable to CoreWeave Forge (wandb/theorem-survival)."""
+"""Log the paired auditor-v1 vs auditor-v2 EvalTable AND the full 160-paper corpus Table to CoreWeave Forge (wandb/theorem-survival)."""
 from __future__ import annotations
 
 import json
@@ -10,6 +10,7 @@ import wandb
 
 ROOT = Path(__file__).resolve().parent.parent
 TRACES_PATH = ROOT / "src" / "data" / "verified-traces.json"
+CORPUS_EXPORT_PATH = ROOT / "out" / "theorems-full-export.json"
 
 INPUT_COLS = [
     "case_id",
@@ -39,6 +40,7 @@ SCORE_COLS = [
 
 def main() -> None:
     snapshot = json.loads(TRACES_PATH.read_text(encoding="utf-8"))
+    corpus_rows = json.loads(CORPUS_EXPORT_PATH.read_text(encoding="utf-8"))
     project_slug = os.environ.get("FORGE_PROJECT", snapshot["project"])
     entity, project = project_slug.split("/", 1)
 
@@ -74,12 +76,13 @@ def main() -> None:
     run = wandb.init(
         entity=entity,
         project=project,
-        name="auditor-v1-vs-v2-eval",
+        name="auditor-v1-vs-v2-and-160-paper-corpus",
         job_type="eval-table",
         config={
             "model": snapshot["model"],
             "agent_name": snapshot["agentName"],
-            "cases": len(rows),
+            "paired_cases": len(rows),
+            "corpus_papers": len(corpus_rows),
             "generated_at_utc": snapshot["generatedAtUtc"],
         },
     )
@@ -91,12 +94,50 @@ def main() -> None:
             output_columns=OUTPUT_COLS,
             score_columns=SCORE_COLS,
         )
-        run.log({"auditor/v1_vs_v2": eval_table})
+        corpus_table = wandb.Table(
+            columns=[
+                "id",
+                "arxiv_or_doi",
+                "year",
+                "topic_bucket",
+                "conjecture_type",
+                "polarity",
+                "outcome_nov20_rh_grh",
+                "plain_summary",
+                "title",
+                "paper_url",
+                "agent_lens_url",
+            ],
+            data=[
+                [
+                    r["id"],
+                    r["arxivOrDoi"],
+                    r["yearLabel"],
+                    r["topicBucket"],
+                    r["conjectureType"],
+                    r["polarity"],
+                    r["nov20Outcome"],
+                    r["plainSummary"],
+                    r["title"],
+                    r["url"],
+                    r["agentLensUrl"],
+                ]
+                for r in corpus_rows
+            ],
+        )
+        run.log(
+            {
+                "auditor/v1_vs_v2": eval_table,
+                "corpus/all_160_papers": corpus_table,
+            }
+        )
 
         v1_outcome_acc = sum(1 for r in rows if r[12]) / len(rows)
         v2_outcome_acc = sum(1 for r in rows if r[14]) / len(rows)
         run.summary.update(
             {
+                "corpus/total_papers": len(corpus_rows),
+                "agent_lens/verified_invocations": snapshot["summary"]["totalVerifiedInvocations"],
                 "v1/outcome_accuracy": v1_outcome_acc,
                 "v1/exact_schema_accuracy": snapshot["summary"]["v1Accuracy"],
                 "v2/outcome_accuracy": v2_outcome_acc,
@@ -106,7 +147,7 @@ def main() -> None:
                 "agent_lens_url": snapshot["agentLensProjectUrl"],
             }
         )
-        print(f"Published EvalTable run: {run.url}")
+        print(f"Published EvalTable + 160-paper corpus run: {run.url}")
     finally:
         run.finish()
 

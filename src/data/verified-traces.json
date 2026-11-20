@@ -15,6 +15,20 @@
       {
         "project_id": "wandb/theorem-survival",
         "agent_name": "theorem-survival-auditor",
+        "invocation_count": 161,
+        "span_count": 161,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 236750,
+        "error_count": 0,
+        "first_seen": "2026-11-20T17:51:56.569000",
+        "last_seen": "2026-11-20T17:52:25.217000",
+        "total_cost_usd": null,
+        "agent_version": "auditor-v2-corpus"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
         "invocation_count": 8,
         "span_count": 8,
         "total_input_tokens": 0,
@@ -40,7 +54,9 @@
         "total_cost_usd": null,
         "agent_version": "auditor-v2-guarded"
       }
-    ]
+    ],
+    "totalVerifiedInvocations": 177,
+    "corpusSize": 160
   },
   "cases": [
     {

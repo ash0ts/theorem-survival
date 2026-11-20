@@ -1,8 +1,15 @@
+import { adaptCorpusItems, AGENT_LENS_CONV_BASE } from "./corpus-adapter";
+
 export type TruthState = "OPEN" | "TRUE" | "FALSE";
 export type ConjectureType = "RH" | "GRH" | "ERH" | "DENSITY_BOUND";
 export type Polarity = "ASSUMES_TRUE" | "ASSUMES_FALSE";
 export type Severity = "CORE_BLOCKER" | "SHARPENS_BOUND";
 export type ArxivCategory = "math.NT" | "cs.CC" | "cs.CR";
+export type TopicBucket =
+  | "Primes & Number Theory"
+  | "Algorithms & Complexity"
+  | "Cryptography & Security"
+  | "Algebra, Knots & Quantum";
 
 export type PresetId =
   | "nov20_live"
@@ -43,7 +50,13 @@ export interface TheoremRecord {
   title: string;
   authors: string;
   yearLabel: string;
+  yearNumeric?: number;
   category: ArxivCategory;
+  primarySubcategory?: string;
+  topicBucket?: TopicBucket;
+  plainSummary?: string;
+  isFeatured?: boolean;
+  agentLensUrl?: string;
   theoremLabel: string;
   conjectureType: ConjectureType;
   polarity: Polarity;
@@ -83,10 +96,10 @@ export const PRESETS: Array<{
 }> = [
   {
     id: "nov20_live",
-    label: "Nov 20 · 15:07 UTC (Comparator Running)",
-    shortLabel: "Comparator Running",
+    label: "Today: Proof Still Checking",
+    shortLabel: "Today (Still Checking)",
     description:
-      "Live status on Nov 20, 2026: Alpöge's 14-part Lean archive hash matched and target statements compiled against Mathlib at 15:07 UTC, while full Lean Comparator proof-term replay and axiom audit are still running.",
+      "Right now on Nov 20, 2026: Alpöge and Claude's 14-part Lean 4 archive compiled its target statements against Mathlib, while the full Lean proof replay is still running. Nothing new is unlocked yet.",
     state: {
       rh: "OPEN",
       grh: "OPEN",
@@ -98,10 +111,10 @@ export const PRESETS: Array<{
   },
   {
     id: "rh_only",
-    label: "Replay Passes: RH Only",
-    shortLabel: "RH Only",
+    label: "If Only Basic RH Holds",
+    shortLabel: "Basic RH Only",
     description:
-      "Classical Riemann Hypothesis for zeta(s) verifies in Lean 4, while Dirichlet GRH and Dedekind ERH remain open.",
+      "Suppose only the original 1859 Riemann Hypothesis verifies. Prime-counting and prime-gap theorems become proven facts, while computer science and cryptography papers needing GRH stay unproved.",
     state: {
       rh: "TRUE",
       grh: "OPEN",
@@ -113,10 +126,10 @@ export const PRESETS: Array<{
   },
   {
     id: "alpoge_rh_grh",
-    label: "Alpöge Nov 20 Claim: RH + GRH",
-    shortLabel: "Alpöge Claim (RH + GRH)",
+    label: "If Nov 20 Claim Holds (RH + GRH)",
+    shortLabel: "Nov 20 Claim (RH + GRH)",
     description:
-      "Matches Alpöge's Friday statement: RH and Dirichlet GRH verify now, while Dedekind ERH ('with more time') is still pending formalization.",
+      "Matches Alpöge's Friday announcement: both RH and Generalized RH (GRH) verify. Unlocks prime theory, fast deterministic algorithms, and post-quantum crypto security proofs — while Extended RH (ERH) papers still wait.",
     state: {
       rh: "TRUE",
       grh: "TRUE",
@@ -128,10 +141,10 @@ export const PRESETS: Array<{
   },
   {
     id: "full_rh_grh_erh",
-    label: "Full Sweep: RH + GRH + ERH",
-    shortLabel: "RH + GRH + ERH",
+    label: "If All Three Hold (RH + GRH + ERH)",
+    shortLabel: "All Three (RH + GRH + ERH)",
     description:
-      "Classical RH, Dirichlet GRH, and Dedekind zeta_K ERH all hold unconditionally across number fields.",
+      "Original RH, Generalized RH, and Extended RH all hold. Unlocks higher algebra, number fields, and Artin's primitive-root conjecture as well.",
     state: {
       rh: "TRUE",
       grh: "TRUE",
@@ -143,10 +156,10 @@ export const PRESETS: Array<{
   },
   {
     id: "siegel_zero_twist",
-    label: "Siegel Zero Twist: RH True, GRH False",
-    shortLabel: "Siegel Zero Twist",
+    label: "Plot Twist: GRH Fails (Siegel Zeros)",
+    shortLabel: "What If GRH Fails?",
     description:
-      "Classical zeta(s) satisfies RH, while quadratic Dirichlet L(s, chi) has exceptional Landau-Siegel real zeros near s = 1. Watch Twin Primes flip to unconditional via ASSUMES_FALSE.",
+      "Basic RH holds, while Generalized RH fails via rare 'Siegel zeros'. Computer-science GRH proofs break — and 15 counterfactual papers (including the Twin Prime Conjecture!) suddenly become proven.",
     state: {
       rh: "TRUE",
       grh: "FALSE",
@@ -158,10 +171,10 @@ export const PRESETS: Array<{
   },
   {
     id: "rh_false",
-    label: "Counterexample: RH False",
-    shortLabel: "RH False",
+    label: "What If RH Is Disproved?",
+    shortLabel: "If RH Fails",
     description:
-      "Lean replay fails and an off-line zero of zeta(s) is exhibited (forcing GRH and ERH false, without Siegel zeros). Unconditional 2024-2026 partial bounds survive intact.",
+      "Suppose an off-line zero disproves RH (and therefore GRH and ERH too). Conditional upgrades fail or fall back to slower backup proofs, while unconditional 2024–2026 bounds survive intact.",
     state: {
       rh: "FALSE",
       grh: "FALSE",
@@ -181,31 +194,31 @@ export const CONJECTURE_ROOTS: Array<{
 }> = [
   {
     id: "ROOT_RH",
-    shortTitle: "RH · Riemann zeta(s)",
-    subtitle: "Re(rho) = 1/2 for nontrivial zeros",
+    shortTitle: "RH · Original (1859)",
+    subtitle: "Prime counting & prime gaps",
     key: "rh",
   },
   {
     id: "ROOT_GRH",
-    shortTitle: "GRH · Dirichlet L(s, chi)",
-    subtitle: "Characters mod q & ray classes",
+    shortTitle: "GRH · Generalized",
+    subtitle: "Fast CS algorithms & crypto",
     key: "grh",
   },
   {
     id: "ROOT_ERH",
-    shortTitle: "ERH · Dedekind zeta_K(s)",
-    subtitle: "General algebraic number fields",
+    shortTitle: "ERH · Extended",
+    subtitle: "Higher number fields & algebra",
     key: "erh",
   },
   {
     id: "ROOT_PARTIAL",
-    shortTitle: "2024-26 Partial Bounds",
-    subtitle: "Guth-Maynard + Claude 67.25%",
+    shortTitle: "Already Proven Bounds",
+    subtitle: "No conjecture needed",
     key: "partial",
   },
 ];
 
-export const THEOREMS: TheoremRecord[] = [
+const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
   {
     id: "P01",
     shortNodeTitle: "Schoenfeld · Explicit pi(x)",
@@ -950,6 +963,146 @@ export const THEOREMS: TheoremRecord[] = [
   },
 ];
 
+const LANDMARK_ENRICHMENTS: Record<
+  string,
+  {
+    topicBucket: TopicBucket;
+    yearNumeric: number;
+    plainSummary: string;
+    agentLensConvId?: string;
+  }
+> = {
+  P01: {
+    topicBucket: "Primes & Number Theory",
+    yearNumeric: 1976,
+    plainSummary:
+      "Pins down the exact Prime Number Theorem error to roughly the square root of x for every number x ≥ 2,657.",
+  },
+  P02: {
+    topicBucket: "Primes & Number Theory",
+    yearNumeric: 2002,
+    plainSummary:
+      "Rewrites the Riemann Hypothesis as an elementary inequality on the sum of divisors of n for every integer n ≥ 1.",
+  },
+  P03: {
+    topicBucket: "Primes & Number Theory",
+    yearNumeric: 2019,
+    plainSummary:
+      "Tightens the largest possible gap between consecutive primes to at most (4/π + ε) √p log p using Fourier optimization.",
+  },
+  P04: {
+    topicBucket: "Primes & Number Theory",
+    yearNumeric: 2026,
+    plainSummary:
+      "Guarantees a prime number inside every short interval [x, x + x^0.525] once x ≥ 3.5 × 10^90 (published Oct 2026).",
+    agentLensConvId: "ts-v2-case-01-visser-rh-2026-11-20-17-25-08",
+  },
+  P05: {
+    topicBucket: "Primes & Number Theory",
+    yearNumeric: 2024,
+    plainSummary:
+      "Already proven without RH: breaks a 50-year barrier capping how many hypothetical off-line zeta zeros could exist.",
+  },
+  P06: {
+    topicBucket: "Primes & Number Theory",
+    yearNumeric: 2026,
+    plainSummary:
+      "Already verified in Lean 4 with Claude (Aug 2026): proves at least 67.25% of zeta zeros are both simple (no duplicates) and on the critical line.",
+    agentLensConvId: "ts-v2-case-08-alpoge-furman-simple-2026-11-20-17-25-08",
+  },
+  P07: {
+    topicBucket: "Primes & Number Theory",
+    yearNumeric: 2025,
+    plainSummary:
+      "Shows that if basic RH holds, testing Generalized RH for modular arithmetic reduces to checking spacing sums of ordinary zeta zeros.",
+  },
+  P08: {
+    topicBucket: "Algorithms & Complexity",
+    yearNumeric: 1990,
+    plainSummary:
+      "Makes deterministic primality testing fast (~log⁴ n) by guaranteeing a small compositeness witness below 2(ln n)², improving on slower unconditional AKS.",
+    agentLensConvId: "ts-v2-case-02-miller-bach-fallback-2026-11-20-17-25-08",
+  },
+  P09: {
+    topicBucket: "Algebra, Knots & Quantum",
+    yearNumeric: 2014,
+    plainSummary:
+      "Proves a short certificate always exists when a tangled 3D loop IS knotted (putting knottedness in coNP, alongside unconditional NP).",
+    agentLensConvId: "ts-v2-case-03-kuperberg-unknot-2026-11-20-17-25-08",
+  },
+  P10: {
+    topicBucket: "Algebra, Knots & Quantum",
+    yearNumeric: 2018,
+    plainSummary:
+      "Uses Kuperberg's GRH certificate to show recognizing torus knots has short verifiable proofs in both yes and no directions (NP ∩ coNP).",
+  },
+  P11: {
+    topicBucket: "Algorithms & Complexity",
+    yearNumeric: 2024,
+    plainSummary:
+      "Places a classic algebraic-combinatorics counting question (whether a Schubert coefficient is zero) low in the complexity hierarchy (AM ∩ coAM).",
+    agentLensConvId: "ts-v2-case-04-schubert-rh-only-2026-11-20-17-25-08",
+  },
+  P12: {
+    topicBucket: "Cryptography & Security",
+    yearNumeric: 2022,
+    plainSummary:
+      "Proves the mathematical equivalence backing post-quantum SQIsign digital signatures (strengthens post-quantum security proofs — does NOT break RSA or ECC).",
+    agentLensConvId: "ts-v2-case-05-wesolowski-sqisign-2026-11-20-17-25-08",
+  },
+  P13: {
+    topicBucket: "Cryptography & Security",
+    yearNumeric: 2009,
+    plainSummary:
+      "Proves short walks on elliptic-curve isogeny graphs mix rapidly like random expanders — a core building block for isogeny cryptography.",
+  },
+  P14: {
+    topicBucket: "Algebra, Knots & Quantum",
+    yearNumeric: 1973,
+    plainSummary:
+      "Proves Artin's primitive-root conjecture and Euclidean division in higher number rings — requires Extended RH (ERH), so RH + GRH alone isn't enough!",
+    agentLensConvId: "ts-v2-case-06-hooley-weinberger-erh-2026-11-20-17-25-08",
+  },
+  P15: {
+    topicBucket: "Primes & Number Theory",
+    yearNumeric: 1934,
+    plainSummary:
+      "Famous 'heads I win, tails you lose' theorem: assumed RH was FALSE to prove class numbers grow to infinity (later proved unconditionally anyway).",
+  },
+  P16: {
+    topicBucket: "Primes & Number Theory",
+    yearNumeric: 2021,
+    plainSummary:
+      "Wild counterfactual: proves that if GRH FAILS via exceptional 'Siegel zeros', then the Twin Prime Conjecture is immediately true!",
+    agentLensConvId: "ts-v2-case-07-siegel-twin-primes-2026-11-20-17-25-08",
+  },
+};
+
+export const LANDMARK_THEOREMS: TheoremRecord[] = RAW_LANDMARK_THEOREMS.map((t) => {
+  const extra = LANDMARK_ENRICHMENTS[t.id];
+  const arxivMatch = t.url.match(/arxiv\.org\/abs\/([^?\s]+)$/i);
+  return {
+    ...t,
+    arxivId: t.arxivId ?? arxivMatch?.[1],
+    topicBucket: extra?.topicBucket ?? "Primes & Number Theory",
+    yearNumeric: extra?.yearNumeric ?? 2020,
+    plainSummary: extra?.plainSummary ?? t.title,
+    isFeatured: true,
+    agentLensUrl: extra?.agentLensConvId
+      ? `${AGENT_LENS_CONV_BASE}/${extra.agentLensConvId}`
+      : "https://forge.coreweave.com/agent-lens/wandb/theorem-survival",
+  };
+});
+
+const _seenArxivIds = new Set<string>(
+  LANDMARK_THEOREMS.map((t) => t.arxivId).filter((x): x is string => Boolean(x)),
+);
+
+export const THEOREMS: TheoremRecord[] = [
+  ...LANDMARK_THEOREMS,
+  ...adaptCorpusItems(_seenArxivIds),
+];
+
 export function normalizeWorldState(
   prev: WorldState,
   field: "rh" | "grh" | "erh",
@@ -980,7 +1133,7 @@ export function buildDiff(before: string[], after: string[]): {
   additions: number;
   deletions: number;
 } {
-  const diffLines: DiffLine[] = [];
+  const out: DiffLine[] = [];
   let lineNo = 1;
   let deletions = 0;
   let additions = 0;
@@ -991,25 +1144,37 @@ export function buildDiff(before: string[], after: string[]): {
 
   if (same) {
     for (const content of before) {
-      diffLines.push({ type: "unchanged", content, lineNumber: lineNo++ });
+      out.push({ type: "unchanged", content, lineNumber: lineNo++ });
     }
-    return { diffLines, additions: 0, deletions: 0 };
+    return { diffLines: out, additions: 0, deletions: 0 };
   }
 
   for (const content of before) {
-    diffLines.push({ type: "removed", content, lineNumber: lineNo++ });
+    out.push({ type: "removed", content, lineNumber: lineNo++ });
     deletions++;
   }
   let addLineNo = 1;
   for (const content of after) {
-    diffLines.push({ type: "added", content, lineNumber: addLineNo++ });
+    out.push({ type: "added", content, lineNumber: addLineNo++ });
     additions++;
   }
-  return { diffLines, additions, deletions };
+  return { diffLines: out, additions, deletions };
 }
 
 export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheorem {
   if (t.conjectureType === "DENSITY_BOUND") {
+    if (t.id !== "P05" && t.id !== "P06") {
+      const diff = buildDiff(t.latexBefore, t.latexBefore);
+      return {
+        outcome: "BOUND_TIGHTENED",
+        badgeLabel: "Already Proven",
+        shortTag: "ALREADY PROVEN",
+        tone: "sky",
+        headline: t.authorAlertOpen,
+        ...diff,
+      };
+    }
+
     const activeToggle =
       t.id === "P05" ? ws.guthMaynard2024 : ws.alpogeFurman2026;
 
@@ -1018,7 +1183,7 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
         const diff = buildDiff(t.latexBefore, t.latexAfterUpgrade);
         return {
           outcome: "VACUOUS_OR_SUPERSEDED",
-          badgeLabel: "Superseded on zeta(s)",
+          badgeLabel: "Superseded by Full RH",
           shortTag: "SUPERSEDED",
           tone: "stone",
           headline: t.authorAlertUpgrade,
@@ -1028,8 +1193,8 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
       const diff = buildDiff(t.latexBefore, t.latexAfterUpgrade);
       return {
         outcome: "BOUND_TIGHTENED",
-        badgeLabel: "Simplicity >= 67.25% Live",
-        shortTag: "ACTIVE",
+        badgeLabel: "Already Proven (Still Useful)",
+        shortTag: "ALREADY PROVEN",
         tone: "sky",
         headline: t.authorAlertUpgrade,
         ...diff,
@@ -1042,8 +1207,8 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
       const diff = buildDiff(t.latexBefore, baseLines);
       return {
         outcome: "BOUND_TIGHTENED",
-        badgeLabel: "Unconditional Baseline",
-        shortTag: "PROVEN",
+        badgeLabel: "Already Proven",
+        shortTag: "ALREADY PROVEN",
         tone: "sky",
         headline:
           ws.rh === "FALSE"
@@ -1056,10 +1221,10 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
     const diff = buildDiff(t.latexBefore, t.latexBefore);
     return {
       outcome: "STILL_CONDITIONAL",
-      badgeLabel: "Disabled in Toggle",
+      badgeLabel: "Toggled Off",
       shortTag: "OFF",
       tone: "amber",
-      headline: "Partial bound toggled off in simulator.",
+      headline: "Partial bound toggled off in custom settings.",
       ...diff,
     };
   }
@@ -1077,9 +1242,9 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
       outcome: "STILL_CONDITIONAL",
       badgeLabel:
         t.polarity === "ASSUMES_FALSE"
-          ? `Conditional on ~${t.conjectureType}`
-          : `Waiting on ${t.conjectureType}`,
-      shortTag: "CONDITIONAL",
+          ? `Only If ${t.conjectureType} Fails`
+          : `Still Needs ${t.conjectureType}`,
+      shortTag: "STILL OPEN",
       tone: "amber",
       headline: t.authorAlertOpen,
       ...diff,
@@ -1092,8 +1257,8 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
       if (!t.hasUnconditionalFallback) {
         return {
           outcome: "UPGRADED_UNCONDITIONAL",
-          badgeLabel: "Upgraded: New Theorem",
-          shortTag: "NEW THEOREM",
+          badgeLabel: "Becomes Proven",
+          shortTag: "BECOMES PROVEN",
           tone: "emerald",
           headline: t.authorAlertUpgrade,
           ...diff,
@@ -1101,8 +1266,8 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
       }
       return {
         outcome: "BOUND_TIGHTENED",
-        badgeLabel: "Upgraded: Bound Tightened",
-        shortTag: "TIGHTENED",
+        badgeLabel: "Gets Faster / Tighter",
+        shortTag: "FASTER / TIGHTER",
         tone: "sky",
         headline: t.authorAlertUpgrade,
         ...diff,
@@ -1113,9 +1278,9 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
     return {
       outcome: "HYPOTHESIS_FALSIFIED",
       badgeLabel: t.hasUnconditionalFallback
-        ? "Reverted to Fallback"
-        : "Hypothesis Falsified",
-      shortTag: t.hasUnconditionalFallback ? "FALLBACK" : "BROKEN",
+        ? "Uses Slower Backup Proof"
+        : "Assumption Disproved",
+      shortTag: t.hasUnconditionalFallback ? "BACKUP PROOF" : "BROKEN",
       tone: "rose",
       headline: t.authorAlertFalsifiedOrVacuous,
       ...diff,
@@ -1126,29 +1291,29 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
     const diff = buildDiff(t.latexBefore, t.latexAfterUpgrade);
     return {
       outcome: "VACUOUS_OR_SUPERSEDED",
-      badgeLabel: "Vacuous (Dead Branch)",
-      shortTag: "VACUOUS",
+      badgeLabel: "Dead 'What-If' Path",
+      shortTag: "DEAD PATH",
       tone: "stone",
       headline: t.authorAlertUpgrade,
       ...diff,
     };
   }
 
-  if (t.id === "P16" && !ws.siegelZero) {
+  if (t.conjectureType === "GRH" && !ws.siegelZero) {
     const noteLines = [
       "\\begin{corollary}[Still Unactivated — Needs Siegel Zeros, Not Just ~RH]",
-      "  % An off-line zero of zeta(s) falsifies GRH globally, yet Heath-Brown (1983)",
-      "  % specifically requires real exceptional zeros beta_0 -> 1^- of L(s, chi).",
+      "  % An off-line zero of zeta(s) falsifies GRH globally, yet Siegel-zero theorems",
+      "  % specifically require real exceptional zeros beta_0 -> 1^- of L(s, chi).",
       "\\end{corollary}",
     ];
     const diff = buildDiff(t.latexBefore, noteLines);
     return {
       outcome: "STILL_CONDITIONAL",
-      badgeLabel: "Needs Siegel Zero",
+      badgeLabel: "Needs Siegel Zeros",
       shortTag: "NEEDS SIEGEL",
       tone: "amber",
       headline:
-        "Falsifying RH via a complex off-line zeta zero does not automatically create real Landau-Siegel zeros near s = 1, so Twin Primes stays open unless Siegel zeros exist.",
+        "Disproving RH via an ordinary off-line zero does not automatically produce real Siegel zeros near s = 1, so this Siegel-zero theorem stays unactivated.",
       ...diff,
     };
   }
@@ -1157,8 +1322,8 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
   if (!t.hasUnconditionalFallback) {
     return {
       outcome: "UPGRADED_UNCONDITIONAL",
-      badgeLabel: "Upgraded via ~GRH!",
-      shortTag: "NEW THEOREM",
+      badgeLabel: "Proved via Counterexample!",
+      shortTag: "BECOMES PROVEN",
       tone: "emerald",
       headline: t.authorAlertFalsifiedOrVacuous,
       ...diff,
@@ -1166,7 +1331,7 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
   }
   return {
     outcome: "BOUND_TIGHTENED",
-    badgeLabel: "~RH Branch Active",
+    badgeLabel: "'What-If' Branch Active",
     shortTag: "ACTIVE",
     tone: "sky",
     headline: t.authorAlertFalsifiedOrVacuous,

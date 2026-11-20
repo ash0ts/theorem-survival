@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   evaluateTheorem,
+  LANDMARK_THEOREMS,
   normalizeWorldState,
   PRESETS,
   THEOREMS,
@@ -9,12 +10,24 @@ import {
 describe("TheoremSurvival world-state engine", () => {
   const byId = Object.fromEntries(THEOREMS.map((t) => [t.id, t]));
 
-  it("keeps all 14 conditional theorems waiting when Lean Comparator is still running", () => {
+  it("loads a full corpus of 150+ verified real arXiv and landmark theorems", () => {
+    expect(THEOREMS.length).toBeGreaterThanOrEqual(150);
+    for (const t of THEOREMS) {
+      expect(t.plainSummary && t.plainSummary.length).toBeGreaterThan(20);
+      expect(t.url.startsWith("https://arxiv.org/abs/") || t.url.startsWith("https://doi.org/")).toBe(
+        true,
+      );
+    }
+  });
+
+  it("keeps all conditional theorems waiting when Lean Comparator is still running", () => {
     const liveState = PRESETS.find((p) => p.id === "nov20_live")!.state;
-    const outcomes = THEOREMS.map((t) => evaluateTheorem(t, liveState).outcome);
-    expect(outcomes.filter((o) => o === "STILL_CONDITIONAL")).toHaveLength(14);
-    expect(outcomes.filter((o) => o === "BOUND_TIGHTENED")).toHaveLength(2);
-    expect(outcomes.filter((o) => o === "UPGRADED_UNCONDITIONAL")).toHaveLength(0);
+    const landmarkOutcomes = LANDMARK_THEOREMS.map((t) => evaluateTheorem(t, liveState).outcome);
+    expect(landmarkOutcomes.filter((o) => o === "STILL_CONDITIONAL")).toHaveLength(14);
+    expect(landmarkOutcomes.filter((o) => o === "BOUND_TIGHTENED")).toHaveLength(2);
+
+    const allOutcomes = THEOREMS.map((t) => evaluateTheorem(t, liveState).outcome);
+    expect(allOutcomes.filter((o) => o === "UPGRADED_UNCONDITIONAL")).toHaveLength(0);
   });
 
   it("distinguishes RH, GRH, and ERH under Alpoge's Nov 20 RH + GRH claim", () => {
@@ -42,7 +55,7 @@ describe("TheoremSurvival world-state engine", () => {
     expect(evaluateTheorem(byId.P05, rhOnly).outcome).toBe("VACUOUS_OR_SUPERSEDED");
   });
 
-  it("upgrades Twin Primes to unconditional under the Siegel-zero twist (RH True, GRH False)", () => {
+  it("upgrades Twin Primes and Siegel-zero papers under the Siegel-zero twist (RH True, GRH False)", () => {
     const siegelState = PRESETS.find((p) => p.id === "siegel_zero_twist")!.state;
     expect(evaluateTheorem(byId.P16, siegelState).outcome).toBe("UPGRADED_UNCONDITIONAL");
     expect(evaluateTheorem(byId.P12, siegelState).outcome).toBe("HYPOTHESIS_FALSIFIED");

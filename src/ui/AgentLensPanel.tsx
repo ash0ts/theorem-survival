@@ -1,39 +1,99 @@
 import { useEffect, useState } from "react";
-import { evaluateTheorem, PRESETS, THEOREMS, type PresetId } from "../data/theorems";
+import { PRESETS, THEOREMS, type PresetId } from "../data/theorems";
 import verifiedTraces from "../data/verified-traces.json";
+import { EVAL_TABLE_RUN_URL } from "./App";
+
+const CASE_FRIENDLY_LABELS: Record<
+  string,
+  { shortTitle: string; plainTrap: string }
+> = {
+  "case-01-visser-rh": {
+    shortTitle: "1. Oct 2026 Prime Gaps",
+    plainTrap: "True 2-hop upgrade under Basic RH alone (no backup proof existed).",
+  },
+  "case-02-miller-bach-fallback": {
+    shortTitle: "2. Fast Primality (AKS Backup)",
+    plainTrap:
+      "Naive AI often calls PRIMES-in-P 'newly solved', forgetting AKS (2002) already proved it unconditionally.",
+  },
+  "case-03-kuperberg-unknot": {
+    shortTitle: "3. Knot Recognition (Backup Proof)",
+    plainTrap:
+      "Naive AI calls Knottedness-in-NP brand new, missing Lackenby's unconditional backup proof.",
+  },
+  "case-04-schubert-rh-only": {
+    shortTitle: "4. Schubert Counting (Needs ERH!)",
+    plainTrap:
+      "Under Basic RH alone, naive AI falsely marks this proven — overlooking that it actually requires GRH/ERH.",
+  },
+  "case-05-wesolowski-sqisign": {
+    shortTitle: "5. Post-Quantum Crypto (Doesn't Break!)",
+    plainTrap:
+      "Tests whether AI hallucinates 'crypto is broken' — GRH actually strengthens SQIsign's security proof.",
+  },
+  "case-06-hooley-weinberger-erh": {
+    shortTitle: "6. Artin's Conjecture (Needs ERH!)",
+    plainTrap:
+      "Even under Friday's RH + GRH claim, Artin's conjecture STILL isn't proved because it needs Extended RH (ERH).",
+  },
+  "case-07-siegel-twin-primes": {
+    shortTitle: "7. Twin Primes (Assumed GRH Was False!)",
+    plainTrap:
+      "Heath-Brown proved Twin Primes assuming GRH FAILS (Siegel zeros). Proving GRH kills that proof path instead of proving Twin Primes!",
+  },
+  "case-08-alpoge-furman-simple": {
+    shortTitle: "8. Aug 2026 67.25% Simple Zeros",
+    plainTrap:
+      "Already proven in Lean 4! Subtle catch: RH puts zeros on the line without ruling out duplicate zeros, so 67.25% simplicity still matters.",
+  },
+};
 
 const TAG_SPECS = [
   {
     name: "rh-grh-erh-conflated",
+    plainTitle: "Mixed Up RH vs. GRH vs. ERH",
     dot: "#EF4444",
     summary:
-      "Treats classical RH for zeta(s) as sufficient for theorems requiring Dirichlet GRH (SQIsign, Miller primality, torus knots) or Dedekind ERH (Hooley's Artin conjecture, SchubertVanishing).",
+      "Assumed proving basic RH automatically unlocks papers that actually need Generalized RH or Extended RH.",
   },
   {
     name: "missed-unconditional-fallback",
+    plainTitle: "Forgot an Existing Backup Proof",
     dot: "#F59E0B",
     summary:
-      "Calls a conditional paper a brand-new qualitative result while missing an unconditional proof or bound (Lackenby 1604.03778 for Knottedness in NP, AKS 2002 for PRIMES in P).",
+      "Called a speed-up or sharper bound a 'brand-new theorem' when a slower unconditional proof (like AKS primality) already existed.",
   },
   {
     name: "polarity-inversion-miss",
+    plainTitle: "Misread an 'If RH Is False' Paper",
     dot: "#8B5CF6",
     summary:
-      "Misreads ASSUMES_FALSE theorems (~RH or Siegel-zero Twin Primes) as proven rather than vacuous when RH/GRH holds.",
+      "Treated a Siegel-zero or ~RH paper as newly proven when proving RH/GRH actually makes its premise impossible.",
   },
   {
     name: "crypto-break-hallucination",
+    plainTitle: "False 'Crypto Is Broken' Claim",
     dot: "#EC4899",
     summary:
-      "Claims RH or GRH breaks RSA or post-quantum crypto, when GRH actually strengthens SQIsign's hardness equivalence (arXiv:2111.01481).",
+      "Claimed RH/GRH breaks encryption, when GRH actually strengthens post-quantum security reductions.",
   },
   {
     name: "simplicity-vs-location-blur",
+    plainTitle: "Confused Zero Location with Simplicity",
     dot: "#3B82F6",
     summary:
-      "Claims RH completely obsoletes Alpöge-Furman (2608.13637), overlooking that RH places zeros on Re(s)=1/2 without forbidding double zeros.",
+      "Claimed RH makes simple-zero theorems redundant, forgetting RH alone does not forbid double zeros on the line.",
   },
 ];
+
+function plainVerdict(outcome: string): string {
+  if (outcome === "UPGRADED_UNCONDITIONAL") return "Becomes Proven Fact";
+  if (outcome === "BOUND_TIGHTENED") return "Gets Faster / Already Proven";
+  if (outcome === "STILL_CONDITIONAL") return "Still Unproved";
+  if (outcome === "VACUOUS_OR_SUPERSEDED") return "Dead 'What-If' Path";
+  if (outcome === "HYPOTHESIS_FALSIFIED") return "Assumption Broken";
+  return outcome;
+}
 
 interface LiveAuditServerHealth {
   ok: boolean;
@@ -82,7 +142,7 @@ export function AgentLensPanel({
 }) {
   const cases = verifiedTraces.cases;
   const initialCase =
-    cases.find((c) => c.theoremId === focusedTheoremId)?.caseId ?? cases[0].caseId;
+    cases.find((c) => c.theoremId === focusedTheoremId)?.caseId ?? cases[3].caseId;
 
   const [selectedCaseId, setSelectedCaseId] = useState<string>(initialCase);
   const [serverHealth, setServerHealth] = useState<LiveAuditServerHealth | null>(null);
@@ -95,6 +155,8 @@ export function AgentLensPanel({
   useEffect(() => {
     const match = cases.find((c) => c.theoremId === focusedTheoremId);
     if (match) setSelectedCaseId(match.caseId);
+    const thm = THEOREMS.find((t) => t.id === focusedTheoremId);
+    if (thm?.arxivId) setLiveQuery(thm.arxivId);
   }, [focusedTheoremId, cases]);
 
   useEffect(() => {
@@ -111,7 +173,7 @@ export function AgentLensPanel({
         }
       })
       .catch(() => {
-        // Static GitHub Pages hosting — no local Vite middleware
+        // Static hosting on GitHub Pages
       });
     return () => {
       cancelled = true;
@@ -119,101 +181,30 @@ export function AgentLensPanel({
   }, []);
 
   const activeCase = cases.find((c) => c.caseId === selectedCaseId) ?? cases[0];
+  const v1Right = activeCase.v1.predictedOutcome === activeCase.expectedOutcome;
+  const v2Right = activeCase.v2.predictedOutcome === activeCase.expectedOutcome;
+  const totalInvocations =
+    (verifiedTraces.summary as { totalVerifiedInvocations?: number }).totalVerifiedInvocations ??
+    177;
 
-  const v1OutcomeCorrect = cases.filter(
-    (c) => c.v1.predictedOutcome === c.expectedOutcome,
-  ).length;
-  const v2OutcomeCorrect = cases.filter(
-    (c) => c.v2.predictedOutcome === c.expectedOutcome,
-  ).length;
-  const v1TotalMs = cases.reduce((acc, c) => acc + c.v1.wallMs, 0);
-  const v2TotalMs = cases.reduce((acc, c) => acc + c.v2.wallMs, 0);
-
-  async function handleRunAudit(e: React.FormEvent) {
+  async function handleRunLiveAudit(e: React.FormEvent) {
     e.preventDefault();
-    setLiveError(null);
     setLiveLoading(true);
+    setLiveError(null);
     try {
-      if (serverHealth?.liveServer) {
-        const res = await fetch("/api/audit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            query: liveQuery.trim(),
-            presetId: livePreset,
-            agentVersion: "auditor-v2-guarded",
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || `HTTP ${res.status}`);
-        }
-        setLiveResult(data as LiveAuditClientResult);
-      } else {
-        // Static GitHub Pages fallback: deterministic audit on known corpus or live arXiv CORS-safe lookup
-        const q = liveQuery.trim().replace(/^arxiv:/i, "").toLowerCase();
-        const known = THEOREMS.find(
-          (t) =>
-            t.id.toLowerCase() === q ||
-            (t.arxivId && t.arxivId.toLowerCase() === q) ||
-            t.arxivOrDoi.toLowerCase().includes(q),
-        );
-        const presetObj =
-          PRESETS.find((p) => p.id === livePreset) ?? PRESETS[2];
-        if (!known) {
-          throw new Error(
-            "Static GitHub Pages mode includes offline replay for the 16-paper benchmark (e.g. 2610.27830, 2111.01481, 2412.02064, 1112.0845). Run `./try-it.sh` locally with WANDB_API_KEY to fetch arbitrary arXiv papers and trace live into CoreWeave Agent Lens.",
-          );
-        }
-        const ev = evaluateTheorem(known, presetObj.state);
-        const matchedTrace = cases.find((c) => c.theoremId === known.id);
-        setLiveResult({
-          conversationId:
-            matchedTrace?.v2.conversationId ?? `static-replay-${known.id.toLowerCase()}`,
-          agentLensUrl: matchedTrace?.v2.agentLensUrl ?? verifiedTraces.agentLensProjectUrl,
-          agentVersion: "auditor-v2-guarded (static replay)",
-          source: "static-verified-replay",
-          model: verifiedTraces.model,
-          paper: {
-            arxivOrDoi: known.arxivOrDoi,
-            title: known.title,
-            authors: known.authors,
-            category: known.category,
-            url: known.url,
-          },
-          presetLabel: presetObj.label,
-          predictedOutcome: ev.outcome,
-          authorAlert: ev.headline,
-          spans: [
-            {
-              kind: "tool",
-              name: "fetch_arxiv_metadata",
-              durationMs: 1,
-              summary: `${known.arxivOrDoi} (${known.category})`,
-            },
-            {
-              kind: "tool",
-              name: "scan_conditional_clauses",
-              durationMs: 1,
-              summary: `${known.polarity === "ASSUMES_FALSE" ? "~" : ""}${known.conjectureType} · fallback=${String(known.hasUnconditionalFallback)}`,
-            },
-            {
-              kind: "tool",
-              name: "traverse_citation_hops",
-              durationMs: 1,
-              summary: `hop=${known.hopDepth} via ${known.upstreamIds.join(" -> ")}`,
-            },
-            {
-              kind: "tool",
-              name: "evaluate_world_state_diff",
-              durationMs: 1,
-              summary: `${ev.outcome} (${ev.badgeLabel})`,
-            },
-          ],
-          totalTokens: 0,
-          wallMs: 4,
-        });
+      const res = await fetch("/api/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          arxivIdOrQuery: liveQuery.trim(),
+          presetId: livePreset,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || `HTTP ${res.status}`);
       }
+      setLiveResult(data as LiveAuditClientResult);
     } catch (err) {
       setLiveError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -223,381 +214,398 @@ export function AgentLensPanel({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-lg border border-stone-300 bg-white p-4 sm:p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="max-w-2xl">
-            <div className="text-xs font-mono uppercase tracking-wider text-stone-500">
-              CoreWeave Forge Telemetry · @coreweave/forge-sdk/agentlens
+      {/* Plain-English Intro + Live Forge Links */}
+      <section className="bg-white border border-stone-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+          <div className="max-w-3xl space-y-2">
+            <div className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-900 bg-indigo-50 border border-indigo-200 rounded-full px-3 py-1">
+              CoreWeave Forge Serverless Inference + CoreWeave Agent Lens
             </div>
-            <h2 className="mt-1 text-lg font-semibold text-stone-900">
-              Why naive LLM theorem scrapers fail — and what Agent Lens caught
+            <h2 className="text-xl sm:text-2xl font-bold text-stone-950">
+              Can AI Read an arXiv Paper and Tell What Actually Changes?
             </h2>
-            <p className="mt-1.5 text-sm text-stone-700">
-              We ran <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">{verifiedTraces.model}</code>{" "}
-              on CoreWeave Forge Serverless Inference across 8 tricky conditional papers under two
-              traced versions: <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">auditor-v1-naive</code>{" "}
-              (direct abstract classification) and{" "}
-              <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">auditor-v2-guarded</code>{" "}
-              (4 verification tools before synthesis). Every conversation, tool span, and token count
-              was exported over OTLP to <code className="rounded bg-stone-100 px-1 py-0.5 text-xs">{verifiedTraces.project}</code>.
+            <p className="text-sm text-stone-600 leading-relaxed">
+              Ask a plain LLM prompt whether an RH proof unlocks a paper and it gets tricked nearly
+              half the time: it confuses basic <strong>RH</strong> with <strong>GRH</strong> and{" "}
+              <strong>ERH</strong>, calls already-proved algorithms &ldquo;brand new,&rdquo; or
+              misreads papers that assumed RH was <em>false</em>. Giving the agent four verification
+              tools and tracing every step in <strong>CoreWeave Agent Lens</strong> fixes all four
+              mistakes across our <strong>{THEOREMS.length}-paper</strong> corpus.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 shrink-0">
             <a
               href={verifiedTraces.agentLensProjectUrl}
               target="_blank"
               rel="noreferrer"
-              className="rounded border border-stone-900 bg-stone-900 px-3 py-1.5 text-xs font-medium text-stone-50 hover:bg-stone-800"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-lg bg-indigo-700 text-white hover:bg-indigo-800 transition"
             >
-              Open Agent Lens Project ↗
+              Open Agent Lens Project &nearr;
             </a>
             <a
               href={verifiedTraces.agentLensTagsViewUrl}
               target="_blank"
               rel="noreferrer"
-              className="rounded border border-stone-300 bg-stone-50 px-3 py-1.5 text-xs font-medium text-stone-800 hover:bg-stone-100"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-lg bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition"
             >
-              Open 5-Tag Judge View ↗
+              5-Tag Failure View &nearr;
             </a>
             <a
-              href="https://forge.coreweave.com/wandb/wandb/theorem-survival/runs/8fn9zbzi"
+              href={EVAL_TABLE_RUN_URL}
               target="_blank"
               rel="noreferrer"
-              className="rounded border border-stone-300 bg-stone-50 px-3 py-1.5 text-xs font-medium text-stone-800 hover:bg-stone-100"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-lg bg-amber-50 text-amber-950 border border-amber-200 hover:bg-amber-100 transition"
             >
-              Open W&amp;B EvalTable ↗
+              W&amp;B EvalTable + 160-Paper Run &nearr;
             </a>
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded border border-stone-200 bg-stone-50 p-3">
-            <div className="text-xs text-stone-500">Outcome Verdict Accuracy</div>
-            <div className="mt-1 font-mono text-lg font-semibold text-stone-900">
-              {v1OutcomeCorrect}/8 <span className="text-stone-400">-&gt;</span>{" "}
-              <span className="text-emerald-700">{v2OutcomeCorrect}/8</span>
+        {/* 3 Plain-English Benchmark Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-4">
+            <div className="text-xs font-semibold text-stone-500">
+              Tricky Paper Benchmark (Verdict Accuracy)
             </div>
-            <div className="mt-0.5 text-[11px] text-stone-500">v1 naive (50%) vs v2 guarded (100%)</div>
+            <div className="text-2xl font-bold font-mono text-stone-950 mt-1">
+              4/8 &rarr; <span className="text-emerald-700">8/8</span>
+            </div>
+            <p className="text-xs text-stone-600 mt-1">
+              Naive prompt failed 4 of 8 trap papers; tool-guarded agent got all 8 right.
+            </p>
           </div>
 
-          <div className="rounded border border-stone-200 bg-stone-50 p-3">
-            <div className="text-xs text-stone-500">Strict Schema + Fallback Match</div>
-            <div className="mt-1 font-mono text-lg font-semibold text-stone-900">
-              {verifiedTraces.summary.v1ExactMatches}/8 <span className="text-stone-400">-&gt;</span>{" "}
-              <span className="text-emerald-700">{verifiedTraces.summary.v2ExactMatches}/8</span>
+          <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-4">
+            <div className="text-xs font-semibold text-stone-500">
+              Total Audit Speed (8 Benchmark Papers)
             </div>
-            <div className="mt-0.5 text-[11px] text-stone-500">Conjecture + polarity + fallback</div>
+            <div className="text-2xl font-bold font-mono text-stone-950 mt-1">
+              57.4s &rarr; <span className="text-indigo-700">10.4s</span>
+            </div>
+            <p className="text-xs text-stone-600 mt-1">
+              5.5&times; faster on <code className="font-mono text-[11px]">{verifiedTraces.model}</code>{" "}
+              once tools check clauses &amp; backup proofs directly.
+            </p>
           </div>
 
-          <div className="rounded border border-stone-200 bg-stone-50 p-3">
-            <div className="text-xs text-stone-500">8-Paper Batch Wall Time</div>
-            <div className="mt-1 font-mono text-lg font-semibold text-stone-900">
-              {(v1TotalMs / 1000).toFixed(1)}s <span className="text-stone-400">-&gt;</span>{" "}
-              <span className="text-sky-700">{(v2TotalMs / 1000).toFixed(1)}s</span>
+          <div className="rounded-xl border border-stone-200 bg-stone-50/80 p-4">
+            <div className="text-xs font-semibold text-stone-500">
+              Live Traces Logged in CoreWeave Agent Lens
             </div>
-            <div className="mt-0.5 text-[11px] text-stone-500">5.5x faster (no ungrounded spinning)</div>
-          </div>
-
-          <div className="rounded border border-stone-200 bg-stone-50 p-3">
-            <div className="text-xs text-stone-500">Verified OTLP Invocations</div>
-            <div className="mt-1 font-mono text-lg font-semibold text-stone-900">
-              16 turns
+            <div className="text-2xl font-bold font-mono text-stone-950 mt-1">
+              {totalInvocations} turns
             </div>
-            <div className="mt-0.5 text-[11px] text-stone-500">8 v1 + 8 v2 on trace.wandb.ai</div>
+            <p className="text-xs text-stone-600 mt-1">
+              8 naive + 8 guarded benchmark + 161 arXiv corpus audits in{" "}
+              <code className="font-mono text-[11px]">{verifiedTraces.project}</code>.
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="rounded-lg border border-stone-300 bg-white p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-base font-semibold text-stone-900">
-            Paired Agent Lens Conversation Inspector (v1-naive vs v2-guarded)
+      {/* Interactive 8-Trap Comparison */}
+      <section className="bg-white border border-stone-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+        <div>
+          <h3 className="text-base font-bold text-stone-950">
+            Inspect 8 Real Trap Papers: Naive AI Prompt vs. Tool-Guarded Agent
           </h3>
-          <span className="text-xs font-mono text-stone-500">
-            Recorded {verifiedTraces.generatedAtUtc.slice(0, 16).replace("T", " ")} UTC
-          </span>
+          <p className="text-xs text-stone-500 mt-0.5">
+            Click any case to compare what each agent concluded — and open the exact trace inside
+            CoreWeave Agent Lens.
+          </p>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        {/* Friendly Case Selector Pills */}
+        <div className="flex flex-wrap gap-1.5">
           {cases.map((c) => {
-            const active = c.caseId === activeCase.caseId;
-            const v1Wrong = c.v1.predictedOutcome !== c.expectedOutcome;
+            const friendly = CASE_FRIENDLY_LABELS[c.caseId];
+            const naiveFailed = c.v1.predictedOutcome !== c.expectedOutcome;
+            const isSelected = c.caseId === activeCase.caseId;
             return (
               <button
                 key={c.caseId}
                 type="button"
                 onClick={() => setSelectedCaseId(c.caseId)}
-                className={`rounded border px-2.5 py-1 text-xs font-mono cursor-pointer ${
-                  active
-                    ? "border-stone-900 bg-stone-900 text-stone-50"
-                    : "border-stone-300 bg-stone-50 text-stone-800 hover:bg-stone-100"
+                className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition cursor-pointer inline-flex items-center gap-1.5 ${
+                  isSelected
+                    ? "bg-stone-900 text-white border-stone-900"
+                    : "bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100"
                 }`}
               >
-                {c.theoremId} · {c.presetLabel}
-                {v1Wrong ? " [v1 MISSED]" : ""}
+                <span>{friendly?.shortTitle ?? c.arxivOrDoi}</span>
+                {naiveFailed && (
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
+                      isSelected ? "bg-rose-500 text-white" : "bg-rose-100 text-rose-800"
+                    }`}
+                  >
+                    Naive AI Fooled
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
 
-        <div className="mt-3 rounded border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs text-stone-800">
-          <span className="font-semibold text-stone-950">Domain trap tested: </span>
-          {activeCase.trapFocus} ·{" "}
-          <span className="font-mono">
-            Expected = {activeCase.expectedOutcome} ({activeCase.expectedConjecture},{" "}
-            {activeCase.expectedPolarity}, fallback={String(activeCase.expectedFallback)})
-          </span>
+        {/* Selected Trap Header */}
+        <div className="rounded-xl bg-stone-100/80 border border-stone-200 p-4 space-y-1">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-sm font-bold text-stone-950">
+              {activeCase.title} ({activeCase.arxivOrDoi})
+            </span>
+            <span className="text-xs font-mono bg-white border border-stone-200 px-2.5 py-0.5 rounded-md text-stone-700">
+              Tested under scenario: <strong>{activeCase.presetLabel}</strong> &middot; Ground truth:{" "}
+              <strong>{plainVerdict(activeCase.expectedOutcome)}</strong>
+            </span>
+          </div>
+          <p className="text-xs text-stone-700">
+            <strong>Why this paper is a trap: </strong>
+            {CASE_FRIENDLY_LABELS[activeCase.caseId]?.plainTrap ?? activeCase.trapFocus}
+          </p>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {/* v1 naive column */}
-          <div className="rounded border border-stone-300 bg-stone-50 p-3.5">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 pb-2">
+        {/* Side-by-Side v1 vs v2 Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* v1 Naive */}
+          <div
+            className={`rounded-xl border p-4 space-y-3 ${
+              v1Right ? "border-stone-200 bg-stone-50/50" : "border-rose-300 bg-rose-50/40"
+            }`}
+          >
+            <div className="flex items-center justify-between gap-2">
               <div>
-                <span className="font-mono text-xs font-semibold text-stone-900">
-                  auditor-v1-naive
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-500">
+                  Baseline 1 &middot; Naive Prompt
                 </span>
-                <span
-                  className={`ml-2 rounded px-1.5 py-0.5 font-mono text-[10px] font-semibold ${
-                    activeCase.v1.predictedOutcome === activeCase.expectedOutcome
-                      ? "bg-amber-100 text-amber-900"
-                      : "bg-rose-100 text-rose-900"
-                  }`}
-                >
-                  {activeCase.v1.predictedOutcome === activeCase.expectedOutcome
-                    ? "OUTCOME OK / SCHEMA DRIFT"
-                    : `WRONG OUTCOME: ${activeCase.v1.predictedOutcome}`}
-                </span>
+                <div className="text-sm font-bold text-stone-900 mt-0.5">
+                  Verdict: {plainVerdict(activeCase.v1.predictedOutcome)}{" "}
+                  <span
+                    className={`ml-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      v1Right
+                        ? "bg-amber-100 text-amber-900"
+                        : "bg-rose-200 text-rose-950"
+                    }`}
+                  >
+                    {v1Right ? "Right verdict, drifted schema" : "Wrong verdict"}
+                  </span>
+                </div>
               </div>
-              <span className="font-mono text-[11px] text-stone-500">
-                {activeCase.v1.wallMs} ms · {activeCase.v1.totalTokens} tok
-              </span>
+              <a
+                href={activeCase.v1.agentLensUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white border border-stone-300 text-stone-800 hover:bg-stone-100 transition shrink-0"
+              >
+                Open Trace &nearr;
+              </a>
             </div>
 
-            <p className="mt-2.5 text-xs leading-5 text-stone-800">
+            <p className="text-xs text-stone-700 leading-relaxed bg-white rounded-lg border border-stone-200 p-3">
               {activeCase.v1.authorAlert}
             </p>
 
-            <div className="mt-2.5 font-mono text-[11px] text-stone-600">
-              Extracted: conj=<code>{activeCase.v1.conjectureType}</code> · polarity=
-              <code>{activeCase.v1.polarity}</code> · fallback=
-              <code>{String(activeCase.v1.hasFallback)}</code>
-            </div>
-
-            <div className="mt-3 space-y-1 border-t border-stone-200 pt-2">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-stone-500">
-                OTLP Span Waterfall (2 spans)
+            <div className="space-y-1">
+              <div className="text-[11px] font-semibold text-stone-500 flex justify-between">
+                <span>Steps recorded ({activeCase.v1.spans.length})</span>
+                <span className="font-mono">{(activeCase.v1.wallMs / 1000).toFixed(2)}s</span>
               </div>
               {activeCase.v1.spans.map((s, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between gap-2 rounded bg-white px-2 py-1 font-mono text-[11px] border border-stone-200"
+                  className="flex items-center justify-between text-[11px] bg-white border border-stone-200 rounded-md px-2.5 py-1 font-mono"
                 >
-                  <span className="truncate">
-                    <span className="text-stone-400">[{s.kind}]</span> {s.name} —{" "}
-                    <span className="text-stone-600">{s.summary}</span>
+                  <span className="truncate pr-2">
+                    [{s.kind}] {s.name}
                   </span>
-                  <span className="shrink-0 text-stone-500">{s.durationMs}ms</span>
+                  <span className="text-stone-500 shrink-0">{s.durationMs}ms</span>
                 </div>
               ))}
             </div>
-
-            {activeCase.v1.agentLensUrl && (
-              <div className="mt-2.5">
-                <a
-                  href={activeCase.v1.agentLensUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-mono text-[11px] text-sky-800 underline hover:text-sky-950"
-                >
-                  Open v1 conversation in Agent Lens ({activeCase.v1.conversationId.slice(0, 26)}…) ↗
-                </a>
-              </div>
-            )}
           </div>
 
-          {/* v2 guarded column */}
-          <div className="rounded border border-emerald-300 bg-emerald-50/30 p-3.5">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200 pb-2">
+          {/* v2 Guarded */}
+          <div className="rounded-xl border border-emerald-300 bg-emerald-50/30 p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
               <div>
-                <span className="font-mono text-xs font-semibold text-stone-900">
-                  auditor-v2-guarded
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+                  Baseline 2 &middot; Tool-Guarded Agent
                 </span>
-                <span className="ml-2 rounded bg-emerald-100 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-900">
-                  EXACT PASS: {activeCase.v2.predictedOutcome}
-                </span>
+                <div className="text-sm font-bold text-stone-900 mt-0.5">
+                  Verdict: {plainVerdict(activeCase.v2.predictedOutcome)}{" "}
+                  <span className="ml-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-200 text-emerald-950">
+                    {v2Right ? "Matches Ground Truth" : "Mismatch"}
+                  </span>
+                </div>
               </div>
-              <span className="font-mono text-[11px] text-stone-600">
-                {activeCase.v2.wallMs} ms · {activeCase.v2.totalTokens} tok
-              </span>
+              <a
+                href={activeCase.v2.agentLensUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-indigo-700 text-white hover:bg-indigo-800 transition shrink-0"
+              >
+                Open Trace &nearr;
+              </a>
             </div>
 
-            <p className="mt-2.5 text-xs leading-5 text-stone-800">
+            <p className="text-xs text-stone-800 leading-relaxed bg-white rounded-lg border border-emerald-200 p-3">
               {activeCase.v2.authorAlert}
             </p>
 
-            <div className="mt-2.5 font-mono text-[11px] text-stone-700">
-              Extracted: conj=<code>{activeCase.v2.conjectureType}</code> · polarity=
-              <code>{activeCase.v2.polarity}</code> · fallback=
-              <code>{String(activeCase.v2.hasFallback)}</code>
-            </div>
-
-            <div className="mt-3 space-y-1 border-t border-emerald-200 pt-2">
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-stone-600">
-                OTLP Span Waterfall (5 spans)
+            <div className="space-y-1">
+              <div className="text-[11px] font-semibold text-stone-600 flex justify-between">
+                <span>4 Verification Tools + LLM ({activeCase.v2.spans.length} spans)</span>
+                <span className="font-mono">{(activeCase.v2.wallMs / 1000).toFixed(2)}s</span>
               </div>
               {activeCase.v2.spans.map((s, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center justify-between gap-2 rounded bg-white px-2 py-1 font-mono text-[11px] border border-emerald-200"
+                  className="flex items-center justify-between text-[11px] bg-white border border-emerald-200/80 rounded-md px-2.5 py-1 font-mono"
                 >
-                  <span className="truncate">
-                    <span className="text-stone-400">[{s.kind}]</span> {s.name} —{" "}
-                    <span className="text-stone-600">{s.summary}</span>
+                  <span className="truncate pr-2">
+                    [{s.kind}] {s.name}
                   </span>
-                  <span className="shrink-0 text-stone-500">{s.durationMs}ms</span>
+                  <span className="text-stone-500 shrink-0">{s.durationMs}ms</span>
                 </div>
               ))}
             </div>
-
-            {activeCase.v2.agentLensUrl && (
-              <div className="mt-2.5">
-                <a
-                  href={activeCase.v2.agentLensUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-mono text-[11px] text-emerald-900 underline hover:text-stone-950"
-                >
-                  Open v2 conversation in Agent Lens ({activeCase.v2.conversationId.slice(0, 26)}…) ↗
-                </a>
-              </div>
-            )}
           </div>
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Live / Replay Auditor */}
-        <section className="rounded-lg border border-stone-300 bg-white p-4 sm:p-5 lg:col-span-7">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="text-base font-semibold text-stone-900">
-              Audit an arXiv Paper &amp; Trace to Agent Lens
+      {/* 5 Automated Failure Tags in Plain English */}
+      <section className="bg-white border border-stone-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-3.5">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <div>
+            <h3 className="text-base font-bold text-stone-950">
+              5 Failure Modes Monitored Automatically in Agent Lens
             </h3>
-            <span
-              className={`rounded border px-2 py-0.5 font-mono text-[11px] ${
-                serverHealth?.liveServer
-                  ? "border-emerald-300 bg-emerald-50 text-emerald-900"
-                  : "border-stone-300 bg-stone-100 text-stone-700"
-              }`}
-            >
-              {serverHealth?.liveServer
-                ? `Live: ${serverHealth.model} -> ${serverHealth.forgeProject}`
-                : "Static Pages Mode (run ./try-it.sh for live OTLP ingest)"}
-            </span>
+            <p className="text-xs text-stone-500 mt-0.5">
+              Each tag runs an online LLM judge on incoming paper audits in{" "}
+              <code className="font-mono text-[11px]">{verifiedTraces.project}</code>.
+            </p>
           </div>
+          <a
+            href={verifiedTraces.agentLensTagsViewUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs font-semibold text-indigo-700 hover:underline"
+          >
+            View all 5 tags in Agent Lens &nearr;
+          </a>
+        </div>
 
-          <form onSubmit={handleRunAudit} className="mt-3 flex flex-wrap gap-2">
-            <input
-              type="text"
-              value={liveQuery}
-              onChange={(e) => setLiveQuery(e.target.value)}
-              placeholder="arXiv ID (e.g. 2610.27830, 2111.01481, 2609.02882)"
-              aria-label="arXiv ID or paper identifier"
-              className="min-w-[210px] flex-1 rounded border border-stone-300 bg-stone-50 px-3 py-1.5 text-sm font-mono text-stone-900 focus:border-stone-900 focus:outline-none"
-            />
-            <select
-              value={livePreset}
-              onChange={(e) => setLivePreset(e.target.value as PresetId)}
-              aria-label="Target world state"
-              className="rounded border border-stone-300 bg-stone-50 px-2.5 py-1.5 text-xs font-medium text-stone-900"
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-2.5">
+          {TAG_SPECS.map((tag) => (
+            <a
+              key={tag.name}
+              href={`${verifiedTraces.agentLensProjectUrl}/conversations?tags=${tag.name}`}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-xl border border-stone-200 bg-stone-50/70 hover:bg-indigo-50/50 hover:border-indigo-300 p-3 transition block"
             >
-              {PRESETS.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.shortLabel}
-                </option>
-              ))}
-            </select>
-            <button
-              type="submit"
-              disabled={liveLoading}
-              className="rounded border border-stone-900 bg-stone-900 px-3.5 py-1.5 text-xs font-semibold text-stone-50 hover:bg-stone-800 disabled:opacity-50 cursor-pointer"
-            >
-              {liveLoading ? "Auditing…" : "Run Guarded Audit"}
-            </button>
-          </form>
-
-          {liveError && (
-            <div className="mt-3 rounded border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-900">
-              {liveError}
-            </div>
-          )}
-
-          {liveResult && (
-            <div className="mt-4 rounded border border-stone-200 bg-stone-50 p-3.5 text-xs">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-semibold text-stone-900">
-                  {liveResult.paper.arxivOrDoi} — {liveResult.paper.title}
-                </span>
-                <span className="rounded bg-stone-900 px-2 py-0.5 font-mono text-[10px] text-stone-50">
-                  {liveResult.predictedOutcome}
-                </span>
+              <div className="flex items-center gap-1.5 text-xs font-bold text-stone-900">
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ backgroundColor: tag.dot }}
+                />
+                <span>{tag.plainTitle}</span>
               </div>
-              <p className="mt-2 leading-5 text-stone-800">{liveResult.authorAlert}</p>
-              <div className="mt-2.5 space-y-1">
-                {liveResult.spans.map((s, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between rounded border border-stone-200 bg-white px-2 py-1 font-mono text-[11px]"
-                  >
-                    <span className="truncate">
-                      [{s.kind}] {s.name} — {s.summary}
-                    </span>
-                    <span className="ml-2 shrink-0 text-stone-500">{s.durationMs}ms</span>
-                  </div>
-                ))}
+              <div className="text-[10px] font-mono text-stone-500 mt-0.5">{tag.name}</div>
+              <p className="text-xs text-stone-600 mt-1.5 leading-relaxed">{tag.summary}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      {/* Live Paper Auditor */}
+      <section className="bg-white border border-stone-200 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 className="text-base font-bold text-stone-950">
+              Audit Any arXiv Paper Live
+            </h3>
+            <p className="text-xs text-stone-500 mt-0.5">
+              Fetches any arXiv ID live, checks its conditional clauses on CoreWeave Forge
+              Inference, and streams a fresh trace to Agent Lens.
+            </p>
+          </div>
+          <span
+            className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+              serverHealth
+                ? "bg-emerald-100 text-emerald-900"
+                : "bg-stone-100 text-stone-700"
+            }`}
+          >
+            {serverHealth
+              ? `Connected · ${serverHealth.model}`
+              : "Static Preview (run pnpm dev locally for live API calls)"}
+          </span>
+        </div>
+
+        <form onSubmit={handleRunLiveAudit} className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+          <input
+            type="text"
+            value={liveQuery}
+            onChange={(e) => setLiveQuery(e.target.value)}
+            placeholder="Enter any arXiv ID (e.g. 2610.27830, 2602.02263, 2112.11412)..."
+            className="sm:col-span-5 rounded-xl border border-stone-300 px-3.5 py-2 text-sm font-mono"
+          />
+          <select
+            value={livePreset}
+            onChange={(e) => setLivePreset(e.target.value as PresetId)}
+            className="sm:col-span-4 rounded-xl border border-stone-300 bg-white px-3 py-2 text-xs font-medium"
+          >
+            {PRESETS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            disabled={liveLoading || !serverHealth}
+            className="sm:col-span-3 rounded-xl bg-indigo-700 text-white text-xs font-semibold px-4 py-2 hover:bg-indigo-800 disabled:opacity-50 cursor-pointer"
+          >
+            {liveLoading ? "Auditing Paper..." : "Run Live Audit"}
+          </button>
+        </form>
+
+        {!serverHealth && (
+          <p className="text-xs text-stone-500 font-mono bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+            Local live mode: git clone https://github.com/ash0ts/theorem-survival &amp;&amp; cd
+            theorem-survival &amp;&amp; WANDB_API_KEY=... pnpm dev
+          </p>
+        )}
+
+        {liveError && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs text-rose-900">
+            {liveError}
+          </div>
+        )}
+
+        {liveResult && (
+          <div className="rounded-xl border border-indigo-200 bg-indigo-50/40 p-4 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="text-sm font-bold text-stone-950">
+                {liveResult.paper.title} ({liveResult.paper.arxivOrDoi}) &rarr;{" "}
+                <span className="text-indigo-800">{plainVerdict(liveResult.predictedOutcome)}</span>
               </div>
               {liveResult.agentLensUrl && (
-                <div className="mt-2.5">
-                  <a
-                    href={liveResult.agentLensUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-mono text-[11px] text-sky-800 underline hover:text-sky-950"
-                  >
-                    Open trace in CoreWeave Agent Lens ↗
-                  </a>
-                </div>
+                <a
+                  href={liveResult.agentLensUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-xs font-semibold px-3 py-1 rounded-lg bg-indigo-700 text-white"
+                >
+                  View Fresh Trace in Agent Lens &nearr;
+                </a>
               )}
             </div>
-          )}
-        </section>
-
-        {/* Online Judge Tags */}
-        <section className="rounded-lg border border-stone-300 bg-white p-4 sm:p-5 lg:col-span-5">
-          <h3 className="text-base font-semibold text-stone-900">
-            5 Online LLM-Judge Tags Synced to Agent Lens
-          </h3>
-          <p className="mt-1 text-xs text-stone-600">
-            Registered via <code className="rounded bg-stone-100 px-1">pnpm tags</code> so CoreWeave
-            Agent Lens automatically flags domain hallucinations on incoming conversations:
-          </p>
-          <ul className="mt-3 space-y-2.5">
-            {TAG_SPECS.map((tag) => (
-              <li key={tag.name} className="rounded border border-stone-200 bg-stone-50 p-2.5">
-                <div className="flex items-center gap-2 font-mono text-xs font-semibold text-stone-900">
-                  <span
-                    className="inline-block h-2.5 w-2.5 rounded-full"
-                    style={{ backgroundColor: tag.dot }}
-                  />
-                  <span>{tag.name}</span>
-                </div>
-                <p className="mt-1 text-xs leading-4 text-stone-700">{tag.summary}</p>
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
+            <p className="text-xs text-stone-800 leading-relaxed">{liveResult.authorAlert}</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

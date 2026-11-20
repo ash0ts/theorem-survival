@@ -1,6 +1,6 @@
 # TheoremSurvival
 
-Riemann Hypothesis world-state simulator, transitive citation graph, and arXiv theorem auditor instrumented with CoreWeave Forge Agent Lens.
+Plain-English explorer of **160 real arXiv and landmark papers** showing what changes if the Riemann Hypothesis (`RH`), Generalized RH (`GRH`), or Extended RH (`ERH`) is proved, audited on CoreWeave Forge Serverless Inference and traced with CoreWeave Agent Lens.
 
 Live hosted app: **https://ash0ts.github.io/theorem-survival/**
 
@@ -38,13 +38,13 @@ When we asked a bare model (`auditor-v1-naive`) to classify 8 conditional papers
 - On Pak–Robichaux (`2412.02064`) and Hooley/Weinberger, `v1` conflated abelian Dirichlet `GRH` with Kummer Dedekind `ERH` and marked both unconditional even when `ERH` was still open.
 - On Alpöge–Furman (`2608.13637`), `v1` missed the distinction between critical-line location (`RH`) and simple-zero multiplicity.
 
-In `auditor-v2-guarded` (`server/auditor.ts`, traced via `@coreweave/forge-sdk/agentlens/tracing` in `server/tracing.ts`), each turn runs four traced tool spans (`fetch_arxiv_metadata`, `scan_conditional_clauses`, `traverse_citation_hops`, `evaluate_world_state_diff`) before synthesis, reaching **8 of 8** exact matches in `10.4s` (`5.5x` faster).
+In `auditor-v2-guarded` (`server/auditor.ts`, traced via `@coreweave/forge-sdk/agentlens/tracing` in `server/tracing.ts`), each turn runs four traced tool spans (`fetch_arxiv_metadata`, `scan_conditional_clauses`, `traverse_citation_hops`, `evaluate_world_state_diff`) before synthesis, reaching **8 of 8** exact matches in `10.4s` (`5.5x` faster). We then audited the full harvested arXiv corpus (`auditor-v2-corpus`, 161 preprints across `math.NT`, `cs.CC`, `cs.CR`, `cs.DS`, `math.CO`, `math.GT`, `quant-ph`) into the same Agent Lens project (**177** verified invocations total).
 
 Live Forge links from the committed benchmark (`src/data/verified-traces.json`):
 
-- Agent Lens conversations & span waterfalls: https://forge.coreweave.com/agent-lens/wandb/theorem-survival
+- Agent Lens conversations & span waterfalls (177 turns): https://forge.coreweave.com/agent-lens/wandb/theorem-survival
 - Online 5-tag LLM judge view (`rh-grh-erh-conflated`, `missed-unconditional-fallback`, `polarity-inversion-miss`, `crypto-break-hallucination`, `simplicity-vs-location-blur`): https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations?tags=rh-grh-erh-conflated,missed-unconditional-fallback,polarity-inversion-miss,crypto-break-hallucination,simplicity-vs-location-blur
-- Paired `v1` vs `v2` `wandb.EvalTable` run: https://forge.coreweave.com/wandb/wandb/theorem-survival/runs/8fn9zbzi
+- Paired `v1` vs `v2` `wandb.EvalTable` + 160-paper corpus run: https://forge.coreweave.com/wandb/wandb/theorem-survival/runs/r8te6qh1
 
 Re-run the live Agent Lens benchmark, sync online judge tags, or republish the `EvalTable`:
 
