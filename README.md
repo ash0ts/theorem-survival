@@ -2,7 +2,8 @@
 
 Plain-English explorer of **160 real arXiv and landmark papers** showing what changes if the Riemann Hypothesis (`RH`), Generalized RH (`GRH`), or Extended RH (`ERH`) is proved, audited on CoreWeave Forge Serverless Inference and traced with CoreWeave Agent Lens.
 
-Live hosted app: **https://ash0ts.github.io/theorem-survival/**
+Live hosted app: **https://ash0ts.github.io/theorem-survival/**  
+Companion CoreWeave Forge Report: **https://forge.coreweave.com/wandb/wandb/agent-lens-fc/reports/Which-Papers-Actually-Change-If-the-Riemann-Hypothesis-Holds--VmlldzoxODM0MjcxNw==**
 
 ## Why we built this
 

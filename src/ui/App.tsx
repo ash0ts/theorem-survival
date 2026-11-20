@@ -297,6 +297,14 @@ export function App() {
                 {copiedLink ? "Copied Link!" : "Copy Share Link"}
               </button>
               <a
+                href="https://forge.coreweave.com/wandb/wandb/agent-lens-fc/reports/Which-Papers-Actually-Change-If-the-Riemann-Hypothesis-Holds--VmlldzoxODM0MjcxNw=="
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-50 text-emerald-950 border border-emerald-200 hover:bg-emerald-100 transition"
+              >
+                Forge Report &nearr;
+              </a>
+              <a
                 href="https://github.com/ash0ts/theorem-survival"
                 target="_blank"
                 rel="noreferrer"
@@ -326,7 +334,7 @@ export function App() {
                 rel="noreferrer"
                 className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-amber-50 text-amber-950 border border-amber-200 hover:bg-amber-100 transition"
               >
-                W&amp;B EvalTable &nearr;
+                Forge EvalTable &nearr;
               </a>
             </div>
           </div>
