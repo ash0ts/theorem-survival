@@ -53,7 +53,7 @@ export function PaperRowDetail({
             rel="noreferrer"
             className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-stone-900 text-white hover:bg-stone-700 transition"
           >
-            Read Paper ({theorem.url.includes("arxiv.org") ? "arXiv" : "DOI"}) &nearr;
+            Read Paper ({theorem.url.includes("arxiv.org") ? "arXiv" : "DOI"}) &#8599;
           </a>
           {theorem.agentLensUrl && (
             <a
@@ -62,7 +62,7 @@ export function PaperRowDetail({
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-800 border border-indigo-200 hover:bg-indigo-100 transition"
             >
-              CoreWeave Agent Lens Trace &nearr;
+              CoreWeave Agent Lens Trace &#8599;
             </a>
           )}
           <button

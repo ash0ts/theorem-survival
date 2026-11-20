@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vite --port 5180",
     "build": "tsc -b && vite build",
+    "build:embed": "tsx scripts/build-embed.ts",
     "preview": "vite preview --port 5180",
     "server": "tsx server/http.ts",
     "demo": "tsx scripts/forge-demo.ts",

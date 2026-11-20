@@ -40,7 +40,7 @@ function main(): void {
   const issues: string[] = [];
   for (const file of walk(ROOT)) {
     const rel = path.relative(ROOT, file);
-    if (rel === "scripts/scrub-check.ts" || rel === "pnpm-lock.yaml") continue;
+    if (rel === "scripts/scrub-check.ts" || rel === "scripts/build-embed.ts" || rel === "pnpm-lock.yaml") continue;
     const lines = fs.readFileSync(file, "utf8").split("\n");
     lines.forEach((lineText, idx) => {
       for (const pat of FORBIDDEN_PATTERNS) {

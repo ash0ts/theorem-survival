@@ -22,8 +22,26 @@ type ShelfFilter = "ALL" | "FEATURED" | "RECENT_2025_2026";
 export const EVAL_TABLE_RUN_URL =
   "https://forge.coreweave.com/wandb/wandb/theorem-survival/runs/r8te6qh1";
 
+function isEmbeddedContext(): boolean {
+  if (typeof window === "undefined") return false;
+  if ((window as unknown as { __THEOREM_SURVIVAL_EMBED__?: boolean }).__THEOREM_SURVIVAL_EMBED__) {
+    return true;
+  }
+  try {
+    if (window.self !== window.top) return true;
+  } catch {
+    return true;
+  }
+  if (new URLSearchParams(window.location.search).get("embed") === "1") return true;
+  return window.location.protocol !== "http:" && window.location.protocol !== "https:";
+}
+
 function parseInitialUrl() {
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(
+    typeof window !== "undefined" && (window.location.protocol === "http:" || window.location.protocol === "https:")
+      ? window.location.search
+      : "",
+  );
   const tab: ViewTab = params.get("tab") === "agent-lens" ? "agent-lens" : "simulator";
   const presetParam = params.get("preset") as PresetId | null;
   const matchedPreset = PRESETS.find((p) => p.id === presetParam) ?? PRESETS[2];
@@ -117,7 +135,10 @@ export function App() {
     [worldState],
   );
 
+  const isEmbed = useMemo(() => isEmbeddedContext(), []);
+
   useEffect(() => {
+    if (isEmbed) return;
     const params = new URLSearchParams();
     if (tab !== "simulator") params.set("tab", tab);
     if (activePreset) {
@@ -130,8 +151,12 @@ export function App() {
     }
     if (expandedId) params.set("thm", expandedId);
     const nextUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.replaceState(null, "", nextUrl);
-  }, [tab, activePreset, worldState, expandedId]);
+    try {
+      window.history.replaceState(null, "", nextUrl);
+    } catch {
+      // Sandboxed iframe environment
+    }
+  }, [isEmbed, tab, activePreset, worldState, expandedId]);
 
   useEffect(() => {
     function onPopState() {
@@ -250,7 +275,14 @@ export function App() {
   }
 
   function handleCopyShareUrl() {
-    navigator.clipboard?.writeText(window.location.href);
+    const shareTarget = isEmbed
+      ? `https://ash0ts.github.io/theorem-survival/${activePreset ? `?preset=${activePreset.id}` : ""}`
+      : window.location.href;
+    try {
+      navigator.clipboard?.writeText(shareTarget);
+    } catch {
+      // Clipboard blocked in sandboxed iframe
+    }
     setCopiedLink(true);
     setTimeout(() => setCopiedLink(false), 1800);
   }
@@ -267,77 +299,112 @@ export function App() {
     <div className="min-h-screen bg-[#FAF9F5] text-stone-900">
       {/* Top Orientation Header + Live Links Bar */}
       <header className="bg-white border-b border-stone-200">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-5 space-y-4">
-          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-800 bg-indigo-50 border border-indigo-200 rounded-full px-3 py-1 mb-2.5">
+        <div className={`max-w-6xl mx-auto px-4 sm:px-6 ${isEmbed ? "py-3 space-y-2.5" : "py-5 space-y-4"}`}>
+          {isEmbed ? (
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-800 bg-indigo-50 border border-indigo-200 rounded-full px-3 py-1">
                 <span className="w-2 h-2 rounded-full bg-indigo-600" />
-                Live Explorer &middot; {THEOREMS.length} Real arXiv &amp; Landmark Papers
+                Interactive Explorer &middot; {THEOREMS.length} Real arXiv &amp; Landmark Papers
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-950">
-                If the Riemann Hypothesis Is Proved, What Actually Changes?
-              </h1>
-              <p className="text-sm sm:text-base text-stone-600 mt-2 leading-relaxed">
-                On Nov 20, 2026, Levent Alpöge and Claude posted a 14-part Lean 4 archive claiming to
-                prove both the original <strong>Riemann Hypothesis (RH)</strong> and its{" "}
-                <strong>Generalized</strong> cousin (<strong>GRH</strong>), while Lean&rsquo;s proof
-                checker is still replaying it. Pick a scenario below to see which of{" "}
-                <strong>{THEOREMS.length} real papers</strong> become proven facts, which just get
-                faster, which still aren&rsquo;t proved yet, and which weirdly evaporate.
-              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href={`https://ash0ts.github.io/theorem-survival/${activePreset ? `?preset=${activePreset.id}` : ""}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-stone-900 text-white hover:bg-stone-700 transition"
+                >
+                  Open Full-Screen &#8599;
+                </a>
+                <a
+                  href={verifiedTraces.agentLensProjectUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition"
+                >
+                  Agent Lens &#8599;
+                </a>
+                <a
+                  href={EVAL_TABLE_RUN_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-50 text-amber-950 border border-amber-200 hover:bg-amber-100 transition"
+                >
+                  EvalTable &#8599;
+                </a>
+              </div>
             </div>
+          ) : (
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+              <div className="max-w-3xl">
+                <div className="inline-flex items-center gap-2 text-xs font-semibold text-indigo-800 bg-indigo-50 border border-indigo-200 rounded-full px-3 py-1 mb-2.5">
+                  <span className="w-2 h-2 rounded-full bg-indigo-600" />
+                  Live Explorer &middot; {THEOREMS.length} Real arXiv &amp; Landmark Papers
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-stone-950">
+                  If the Riemann Hypothesis Is Proved, What Actually Changes?
+                </h1>
+                <p className="text-sm sm:text-base text-stone-600 mt-2 leading-relaxed">
+                  On Nov 20, 2026, Levent Alpöge and Claude posted a 14-part Lean 4 archive claiming to
+                  prove both the original <strong>Riemann Hypothesis (RH)</strong> and its{" "}
+                  <strong>Generalized</strong> cousin (<strong>GRH</strong>), while Lean&rsquo;s proof
+                  checker is still replaying it. Pick a scenario below to see which of{" "}
+                  <strong>{THEOREMS.length} real papers</strong> become proven facts, which just get
+                  faster, which still aren&rsquo;t proved yet, and which weirdly evaporate.
+                </p>
+              </div>
 
-            {/* Preserved Quick Links Bar */}
-            <div className="flex flex-wrap items-center gap-2 lg:justify-end shrink-0">
-              <button
-                type="button"
-                onClick={handleCopyShareUrl}
-                className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-stone-900 text-white hover:bg-stone-700 transition cursor-pointer"
-              >
-                {copiedLink ? "Copied Link!" : "Copy Share Link"}
-              </button>
-              <a
-                href="https://forge.coreweave.com/wandb/wandb/agent-lens-fc/reports/Which-Papers-Actually-Change-If-the-Riemann-Hypothesis-Holds--VmlldzoxODM0MjcxNw=="
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-50 text-emerald-950 border border-emerald-200 hover:bg-emerald-100 transition"
-              >
-                Forge Report &nearr;
-              </a>
-              <a
-                href="https://github.com/ash0ts/theorem-survival"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-stone-100 text-stone-800 border border-stone-300 hover:bg-stone-200 transition"
-              >
-                GitHub &nearr;
-              </a>
-              <a
-                href={verifiedTraces.agentLensProjectUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition"
-              >
-                CoreWeave Agent Lens &nearr;
-              </a>
-              <a
-                href={verifiedTraces.agentLensTagsViewUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-white text-stone-700 border border-stone-300 hover:bg-stone-100 transition"
-              >
-                5-Tag Judge View &nearr;
-              </a>
-              <a
-                href={EVAL_TABLE_RUN_URL}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-amber-50 text-amber-950 border border-amber-200 hover:bg-amber-100 transition"
-              >
-                Forge EvalTable &nearr;
-              </a>
+              {/* Preserved Quick Links Bar */}
+              <div className="flex flex-wrap items-center gap-2 lg:justify-end shrink-0">
+                <button
+                  type="button"
+                  onClick={handleCopyShareUrl}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-lg bg-stone-900 text-white hover:bg-stone-700 transition cursor-pointer"
+                >
+                  {copiedLink ? "Copied Link!" : "Copy Share Link"}
+                </button>
+                <a
+                  href="https://forge.coreweave.com/wandb/wandb/agent-lens-fc/reports/Which-Papers-Actually-Change-If-the-Riemann-Hypothesis-Holds--VmlldzoxODM0MjcxNw=="
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-50 text-emerald-950 border border-emerald-200 hover:bg-emerald-100 transition"
+                >
+                  Forge Report &#8599;
+                </a>
+                <a
+                  href="https://github.com/ash0ts/theorem-survival"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-stone-100 text-stone-800 border border-stone-300 hover:bg-stone-200 transition"
+                >
+                  GitHub &#8599;
+                </a>
+                <a
+                  href={verifiedTraces.agentLensProjectUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100 transition"
+                >
+                  CoreWeave Agent Lens &#8599;
+                </a>
+                <a
+                  href={verifiedTraces.agentLensTagsViewUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-white text-stone-700 border border-stone-300 hover:bg-stone-100 transition"
+                >
+                  5-Tag Judge View &#8599;
+                </a>
+                <a
+                  href={EVAL_TABLE_RUN_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-2 rounded-lg bg-amber-50 text-amber-950 border border-amber-200 hover:bg-amber-100 transition"
+                >
+                  Forge EvalTable &#8599;
+                </a>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Primary Navigation Tabs */}
           <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-stone-100">
@@ -849,7 +916,7 @@ export function App() {
                               className="inline-flex items-center gap-1 text-xs font-mono font-medium px-2.5 py-1 rounded-md bg-stone-100 text-stone-800 border border-stone-200 hover:bg-stone-200 transition"
                               title={`Open ${t.arxivOrDoi}`}
                             >
-                              {t.arxivId ? `arXiv:${t.arxivId}` : "DOI"} &nearr;
+                              {t.arxivId ? `arXiv:${t.arxivId}` : "DOI"} &#8599;
                             </a>
                             {t.agentLensUrl && (
                               <a
@@ -859,7 +926,7 @@ export function App() {
                                 className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-md bg-indigo-50/80 text-indigo-800 border border-indigo-200/80 hover:bg-indigo-100 transition"
                                 title="Open audit trace in CoreWeave Agent Lens"
                               >
-                                Agent Lens &nearr;
+                                Agent Lens &#8599;
                               </a>
                             )}
                             <button
