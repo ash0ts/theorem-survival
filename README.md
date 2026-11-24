@@ -3,7 +3,7 @@
 Plain-English explorer of **3,779 deduplicated mathematical and computer science works** (harvested from **3,800** raw candidates across uncapped arXiv abstracts, OpenAlex full-text assumption search, anchor citations, and curated classics) showing what actually changed once the November 2026 Lean 4 proof of the Riemann Hypothesis (`RH`) and Dirichlet Generalized Riemann Hypothesis (`GRH`) passed standalone kernel verification — audited on CoreWeave Forge Serverless Inference and traced with CoreWeave Agent Lens.
 
 Live hosted app: **https://ash0ts.github.io/theorem-survival/**  
-Companion CoreWeave Forge Report: **https://forge.coreweave.com/wandb/wandb/agent-lens-fc/reports/Which-Papers-Actually-Changed-When-the-Riemann-Hypothesis-Was-Checked---VmlldzoxODM0MjcxNw==**
+Companion CoreWeave Forge Report: **https://forge.coreweave.com/wandb/wandb/agent-lens-fc/reports/Which-Papers-Actually-Changed-When-the-Riemann-Hypothesis-Was-Checked--VmlldzoxODM0MjcxNw==**
 
 ## Why we rebuilt this (Attempt 1 -> Attempt 2)
 
