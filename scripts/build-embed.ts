@@ -2,8 +2,8 @@
  * Build a single self-contained HTML file (`dist/theorem-survival-embed.html`)
  * for inline embedding inside a CoreWeave Forge Report via `wandb.Html(..., inject=False)`.
  *
- * - Inlines Tailwind CSS + React + all 160 paper records + 177 trace verification receipts
- * - Sets `window.__THEOREM_SURVIVAL_EMBED__ = true` for compact embedded chrome and zero relative `/api/*` calls
+ * - Inlines Tailwind CSS + React + Top-100 + Landmark seed records + benchmark & trace receipts
+ * - Sets `window.__THEOREM_SURVIVAL_EMBED__ = true` for compact embedded chrome and zero relative `/api/*` or pool fetches
  * - Runs strict leak assertions on the final HTML string before writing
  */
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -90,7 +90,7 @@ async function main() {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="${csp}">
-<title>TheoremSurvival · Interactive 160-Paper Explorer</title>
+<title>Theorem Survival · Interactive Explorer</title>
 <style>
 ${cssCode}
 </style>

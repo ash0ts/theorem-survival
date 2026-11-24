@@ -1,0 +1,38 @@
+{
+  "rawPoolCount": 3800,
+  "explorerTotalCount": 3779,
+  "fulltextCount": 2894,
+  "abstractOnlyCount": 906,
+  "evalRunUrl": "https://forge.coreweave.com/wandb/wandb/theorem-survival/runs/r8tvugkm",
+  "byConjecture": {
+    "RH": 533,
+    "GRH_DIRICHLET": 477,
+    "BEYOND_DIRICHLET": 1035,
+    "UNCLEAR": 135,
+    "DENSITY_BOUND": 70,
+    "MENTION_ONLY": 1529
+  },
+  "byScopeGroup": {
+    "COVERED": 1010,
+    "BEYOND": 1035,
+    "UNCLEAR": 135,
+    "ALREADY_PROVEN": 70,
+    "MENTION_ONLY": 1529
+  },
+  "checkedNov24Outcomes": {
+    "UPGRADED_UNCONDITIONAL": 393,
+    "BOUND_TIGHTENED": 643,
+    "STILL_CONDITIONAL": 1170,
+    "VACUOUS_OR_SUPERSEDED": 44,
+    "HYPOTHESIS_FALSIFIED": 0,
+    "MENTION_ONLY_UNCHANGED": 1529
+  },
+  "top100CheckedOutcomes": {
+    "UPGRADED_UNCONDITIONAL": 6,
+    "BOUND_TIGHTENED": 21,
+    "STILL_CONDITIONAL": 27,
+    "VACUOUS_OR_SUPERSEDED": 2,
+    "HYPOTHESIS_FALSIFIED": 0,
+    "MENTION_ONLY_UNCHANGED": 44
+  }
+}

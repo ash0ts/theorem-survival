@@ -1,0 +1,759 @@
+{
+  "generatedAtUtc": "2026-11-20T17:26:07.485Z",
+  "project": "wandb/theorem-survival",
+  "agentName": "theorem-survival-auditor",
+  "agentLensProjectUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival",
+  "agentLensTagsViewUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations?tags=rh-grh-erh-conflated,missed-unconditional-fallback,polarity-inversion-miss,crypto-break-hallucination,simplicity-vs-location-blur",
+  "model": "zai-org/GLM-5.3-Flash",
+  "summary": {
+    "cases": 8,
+    "v1ExactMatches": 0,
+    "v2ExactMatches": 8,
+    "v1Accuracy": 0,
+    "v2Accuracy": 1,
+    "verifiedAgentVersions": [
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 161,
+        "span_count": 161,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 236750,
+        "error_count": 0,
+        "first_seen": "2026-11-20T17:51:56.569000",
+        "last_seen": "2026-11-20T17:52:25.217000",
+        "total_cost_usd": null,
+        "agent_version": "auditor-v2-corpus"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 8,
+        "span_count": 8,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 57438,
+        "error_count": 0,
+        "first_seen": "2026-11-20T17:25:08.550000",
+        "last_seen": "2026-11-20T17:26:05.762000",
+        "total_cost_usd": null,
+        "agent_version": "auditor-v1-naive"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 8,
+        "span_count": 8,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 10382,
+        "error_count": 0,
+        "first_seen": "2026-11-20T17:25:08.565000",
+        "last_seen": "2026-11-20T17:26:05.762000",
+        "total_cost_usd": null,
+        "agent_version": "auditor-v2-guarded"
+      }
+    ],
+    "totalVerifiedInvocations": 177,
+    "corpusSize": 160
+  },
+  "cases": [
+    {
+      "caseId": "case-01-visser-rh",
+      "theoremId": "P04",
+      "arxivOrDoi": "arXiv:2610.27830",
+      "title": "Primes in short intervals assuming the Riemann hypothesis",
+      "presetId": "rh_only",
+      "presetLabel": "RH Only",
+      "trapFocus": "2-hop transitive RH upgrade on Oct 2026 short-interval primes (2610.27830)",
+      "expectedOutcome": "UPGRADED_UNCONDITIONAL",
+      "expectedConjecture": "RH",
+      "expectedPolarity": "ASSUMES_TRUE",
+      "expectedFallback": false,
+      "v1": {
+        "conversationId": "ts-v1-case-01-visser-rh-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-01-visser-rh-2026-11-20-17-25-08",
+        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
+        "conjectureType": "Riemann Hypothesis",
+        "polarity": "positive",
+        "hasFallback": false,
+        "exactMatch": false,
+        "authorAlert": "All results in this note are explicitly contingent on RH; if Alpöge's Nov 2026 announcement proves RH, the effective Baker–Harman–Pintz bounds and the prime-in-interval results become unconditional.",
+        "totalTokens": 717,
+        "wallMs": 4249,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 198,
+            "summary": "arXiv:2610.27830 (math.NT) — Primes in short intervals assuming the Riemann hypothesi"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 4048,
+            "summary": "Naive direct JSON classification (212 tok)",
+            "inputTokens": 505,
+            "outputTokens": 212
+          }
+        ]
+      },
+      "v2": {
+        "conversationId": "ts-v2-case-01-visser-rh-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-01-visser-rh-2026-11-20-17-25-08",
+        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
+        "conjectureType": "RH",
+        "polarity": "ASSUMES_TRUE",
+        "hasFallback": false,
+        "exactMatch": true,
+        "authorAlert": "Author alert for Matt Visser (uploaded 31 days ago, Hop 2 via 1708.04122): Theorems 1-3 upgrade to unconditional, making Baker-Harman-Pintz explicitly effective at x >= 3.5e90.",
+        "totalTokens": 679,
+        "wallMs": 1849,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 192,
+            "summary": "arXiv:2610.27830 (math.NT) — Primes in short intervals assuming the Riemann hypothesi"
+          },
+          {
+            "kind": "tool",
+            "name": "scan_conditional_clauses",
+            "durationMs": 0,
+            "summary": "RH · fallback=false"
+          },
+          {
+            "kind": "tool",
+            "name": "traverse_citation_hops",
+            "durationMs": 1,
+            "summary": "hop=2 via P03 -> P04"
+          },
+          {
+            "kind": "tool",
+            "name": "evaluate_world_state_diff",
+            "durationMs": 1,
+            "summary": "UPGRADED_UNCONDITIONAL (Upgraded: New Theorem)"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 1639,
+            "summary": "Synthesized grounded verdict (14 tok)",
+            "inputTokens": 665,
+            "outputTokens": 14
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "case-02-sqisign-rh-only",
+      "theoremId": "P12",
+      "arxivOrDoi": "arXiv:2111.01481",
+      "title": "The supersingular isogeny path and endomorphism ring problems are equivalent",
+      "presetId": "rh_only",
+      "presetLabel": "RH Only",
+      "trapFocus": "rh-grh-erh-conflated & crypto-break-hallucination: RH alone does NOT unlock SQIsign (needs GRH)",
+      "expectedOutcome": "STILL_CONDITIONAL",
+      "expectedConjecture": "GRH",
+      "expectedPolarity": "ASSUMES_TRUE",
+      "expectedFallback": false,
+      "v1": {
+        "conversationId": "ts-v1-case-02-sqisign-rh-only-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-02-sqisign-rh-only-2026-11-20-17-25-08",
+        "predictedOutcome": "STILL_CONDITIONAL",
+        "conjectureType": "GRH",
+        "polarity": "conditional",
+        "hasFallback": false,
+        "exactMatch": false,
+        "authorAlert": "The equivalence theorem is conditional on GRH, which remains open in the world state; the result stays conditional. No remediation beyond noting the dependence.",
+        "totalTokens": 541,
+        "wallMs": 1210,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 175,
+            "summary": "arXiv:2111.01481 (math.NT) — The supersingular isogeny path and endomorphism ring pro"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 1033,
+            "summary": "Naive direct JSON classification (149 tok)",
+            "inputTokens": 392,
+            "outputTokens": 149
+          }
+        ]
+      },
+      "v2": {
+        "conversationId": "ts-v2-case-02-sqisign-rh-only-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-02-sqisign-rh-only-2026-11-20-17-25-08",
+        "predictedOutcome": "STILL_CONDITIONAL",
+        "conjectureType": "GRH",
+        "polarity": "ASSUMES_TRUE",
+        "hasFallback": false,
+        "exactMatch": true,
+        "authorAlert": "Wesolowski's equivalence theorem is conditional on GRH for Dirichlet L-functions, not classical RH; RH=TRUE in this world-state does not discharge the assumption since quaternion ideal norm representation needs quadratic character L-functions. Proving GRH would strengthen, not break, SQIsign's post-quantum security reductions, so the correct badge remains 'Waiting on GRH' with no unconditional fallback available.",
+        "totalTokens": 795,
+        "wallMs": 1756,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 172,
+            "summary": "arXiv:2111.01481 (math.NT) — The supersingular isogeny path and endomorphism ring pro"
+          },
+          {
+            "kind": "tool",
+            "name": "scan_conditional_clauses",
+            "durationMs": 0,
+            "summary": "GRH · fallback=false"
+          },
+          {
+            "kind": "tool",
+            "name": "traverse_citation_hops",
+            "durationMs": 1,
+            "summary": "hop=2 via P13 -> P12"
+          },
+          {
+            "kind": "tool",
+            "name": "evaluate_world_state_diff",
+            "durationMs": 0,
+            "summary": "STILL_CONDITIONAL (Waiting on GRH)"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 1581,
+            "summary": "Synthesized grounded verdict (135 tok)",
+            "inputTokens": 660,
+            "outputTokens": 135
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "case-03-kuperberg-fallback",
+      "theoremId": "P09",
+      "arxivOrDoi": "arXiv:1112.0845",
+      "title": "Knottedness is in NP, modulo GRH",
+      "presetId": "alpoge_rh_grh",
+      "presetLabel": "Alpöge Claim (RH + GRH)",
+      "trapFocus": "missed-unconditional-fallback: Lackenby (1604.03778) already proved Knottedness in NP unconditionally",
+      "expectedOutcome": "BOUND_TIGHTENED",
+      "expectedConjecture": "GRH",
+      "expectedPolarity": "ASSUMES_TRUE",
+      "expectedFallback": true,
+      "v1": {
+        "conversationId": "ts-v1-case-03-kuperberg-fallback-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-03-kuperberg-fallback-2026-11-20-17-25-08",
+        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
+        "conjectureType": "GRH",
+        "polarity": "positive",
+        "hasFallback": false,
+        "exactMatch": false,
+        "authorAlert": "GRH is now proven (RH proved per Alpöge 2026), so the NP membership of knottedness becomes unconditional.",
+        "totalTokens": 542,
+        "wallMs": 936,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 139,
+            "summary": "arXiv:1112.0845 (math.GT) — Knottedness is in NP, modulo GRH"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 797,
+            "summary": "Naive direct JSON classification (156 tok)",
+            "inputTokens": 386,
+            "outputTokens": 156
+          }
+        ]
+      },
+      "v2": {
+        "conversationId": "ts-v2-case-03-kuperberg-fallback-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-03-kuperberg-fallback-2026-11-20-17-25-08",
+        "predictedOutcome": "BOUND_TIGHTENED",
+        "conjectureType": "GRH",
+        "polarity": "ASSUMES_TRUE",
+        "hasFallback": true,
+        "exactMatch": true,
+        "authorAlert": "Kuperberg's Theorem 1.1 assumes GRH for the effective Chebotarev step in the SL(2,F_p) witness, and in this world-state GRH is verified TRUE, so the certificate route is unconditional. However, Lackenby (arXiv:1604.03778) already proved knottedness in NP unconditionally via the Thurston norm, so GRH here only sharpens the certificate size, not the complexity class.",
+        "totalTokens": 882,
+        "wallMs": 1177,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 141,
+            "summary": "arXiv:1112.0845 (math.GT) — Knottedness is in NP, modulo GRH"
+          },
+          {
+            "kind": "tool",
+            "name": "scan_conditional_clauses",
+            "durationMs": 0,
+            "summary": "GRH · fallback=true"
+          },
+          {
+            "kind": "tool",
+            "name": "traverse_citation_hops",
+            "durationMs": 0,
+            "summary": "hop=1 via ROOT_GRH -> P09"
+          },
+          {
+            "kind": "tool",
+            "name": "evaluate_world_state_diff",
+            "durationMs": 0,
+            "summary": "BOUND_TIGHTENED (Upgraded: Bound Tightened)"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 1036,
+            "summary": "Synthesized grounded verdict (163 tok)",
+            "inputTokens": 719,
+            "outputTokens": 163
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "case-04-schubert-erh-gap",
+      "theoremId": "P11",
+      "arxivOrDoi": "arXiv:2412.02064",
+      "title": "Vanishing of Schubert Coefficients",
+      "presetId": "alpoge_rh_grh",
+      "presetLabel": "Alpöge Claim (RH + GRH)",
+      "trapFocus": "rh-grh-erh-conflated: SchubertVanishing (2412.02064) traces to Dedekind ERH, still open in RH+GRH preset",
+      "expectedOutcome": "STILL_CONDITIONAL",
+      "expectedConjecture": "ERH",
+      "expectedPolarity": "ASSUMES_TRUE",
+      "expectedFallback": false,
+      "v1": {
+        "conversationId": "ts-v1-case-04-schubert-erh-gap-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-04-schubert-erh-gap-2026-11-20-17-25-08",
+        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
+        "conjectureType": "complexity_class_membership",
+        "polarity": "conditional_on_GRH",
+        "hasFallback": false,
+        "exactMatch": false,
+        "authorAlert": "The paper's coAM membership for Schubert vanishing is conditional on GRH; with RH now proved (Alpöge 2026), the result becomes unconditional.",
+        "totalTokens": 684,
+        "wallMs": 31185,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 119,
+            "summary": "arXiv:2412.02064 (math.CO) — Vanishing of Schubert Coefficients"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 31065,
+            "summary": "Naive direct JSON classification (180 tok)",
+            "inputTokens": 504,
+            "outputTokens": 180
+          }
+        ]
+      },
+      "v2": {
+        "conversationId": "ts-v2-case-04-schubert-erh-gap-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-04-schubert-erh-gap-2026-11-20-17-25-08",
+        "predictedOutcome": "STILL_CONDITIONAL",
+        "conjectureType": "ERH",
+        "polarity": "ASSUMES_TRUE",
+        "hasFallback": false,
+        "exactMatch": true,
+        "authorAlert": "Theorem 1.4's coAM/PH membership for SchubertVanishing rests on the Parametric Hilbert Nullstellensatz, whose analytic input is Dedekind ERH, not the GRH named in the abstract; with GRH now proven but ERH still open, the theorem remains conditional. State the ERH dependence explicitly in the abstract and Section 1.4 so readers do not mistake the Dirichlet GRH result for the needed number-field statement.",
+        "totalTokens": 867,
+        "wallMs": 1190,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 117,
+            "summary": "arXiv:2412.02064 (math.CO) — Vanishing of Schubert Coefficients"
+          },
+          {
+            "kind": "tool",
+            "name": "scan_conditional_clauses",
+            "durationMs": 0,
+            "summary": "ERH · fallback=false"
+          },
+          {
+            "kind": "tool",
+            "name": "traverse_citation_hops",
+            "durationMs": 1,
+            "summary": "hop=2 via P14 -> P08 -> P11"
+          },
+          {
+            "kind": "tool",
+            "name": "evaluate_world_state_diff",
+            "durationMs": 0,
+            "summary": "STILL_CONDITIONAL (Waiting on ERH)"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 1072,
+            "summary": "Synthesized grounded verdict (162 tok)",
+            "inputTokens": 705,
+            "outputTokens": 162
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "case-05-siegel-twins-vacuous",
+      "theoremId": "P16",
+      "arxivOrDoi": "arXiv:2112.11412",
+      "title": "Siegel zeros, twin primes, Goldbach's conjecture, and primes in short intervals",
+      "presetId": "alpoge_rh_grh",
+      "presetLabel": "Alpöge Claim (RH + GRH)",
+      "trapFocus": "polarity-inversion-miss: GRH=True kills Siegel zeros, making Twin Primes proof route VACUOUS (not proven)",
+      "expectedOutcome": "VACUOUS_OR_SUPERSEDED",
+      "expectedConjecture": "GRH",
+      "expectedPolarity": "ASSUMES_FALSE",
+      "expectedFallback": false,
+      "v1": {
+        "conversationId": "ts-v1-case-05-siegel-twins-vacuous-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-05-siegel-twins-vacuous-2026-11-20-17-25-08",
+        "predictedOutcome": "VACUOUS_OR_SUPERSEDED",
+        "conjectureType": "Siegel zeros existence",
+        "polarity": "negative (assumes Siegel zeros exist)",
+        "hasFallback": false,
+        "exactMatch": false,
+        "authorAlert": "The paper's main theorems are conditional on the existence of Siegel zeros, which the Nov 2026 RH proof rules out (RH implies no Siegel zeros). The results remain vacuously true but their intended applications to Goldbach and short intervals are superseded by unconditional advances.",
+        "totalTokens": 645,
+        "wallMs": 15728,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 215,
+            "summary": "arXiv:2112.11412 (math.NT) — Siegel zeros, twin primes, Goldbach's conjecture, and pr"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 15513,
+            "summary": "Naive direct JSON classification (228 tok)",
+            "inputTokens": 417,
+            "outputTokens": 228
+          }
+        ]
+      },
+      "v2": {
+        "conversationId": "ts-v2-case-05-siegel-twins-vacuous-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-05-siegel-twins-vacuous-2026-11-20-17-25-08",
+        "predictedOutcome": "VACUOUS_OR_SUPERSEDED",
+        "conjectureType": "GRH",
+        "polarity": "ASSUMES_FALSE",
+        "hasFallback": false,
+        "exactMatch": true,
+        "authorAlert": "Corollary 1.1 is a conditional implication whose hypothesis (infinitely many Siegel zeros) is now false in this world-state, since GRH is proven; the corollary is vacuously true and provides no route to Twin Primes. Do not read the Heath-Brown/Matomäki–Merikoski result as evidence toward Twin Primes — the unconditional record remains prime gaps ≤ 246 (Maynard–Tao/Polymath8b), and the paper's GRH-true corollaries on Goldbach and short intervals now carry the weight instead.",
+        "totalTokens": 895,
+        "wallMs": 1858,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 202,
+            "summary": "arXiv:2112.11412 (math.NT) — Siegel zeros, twin primes, Goldbach's conjecture, and pr"
+          },
+          {
+            "kind": "tool",
+            "name": "scan_conditional_clauses",
+            "durationMs": 0,
+            "summary": "~GRH · fallback=false"
+          },
+          {
+            "kind": "tool",
+            "name": "traverse_citation_hops",
+            "durationMs": 0,
+            "summary": "hop=2 via P15 -> ROOT_GRH -> P16"
+          },
+          {
+            "kind": "tool",
+            "name": "evaluate_world_state_diff",
+            "durationMs": 0,
+            "summary": "VACUOUS_OR_SUPERSEDED (Vacuous (Dead Branch))"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 1655,
+            "summary": "Synthesized grounded verdict (200 tok)",
+            "inputTokens": 695,
+            "outputTokens": 200
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "case-06-alpoge-simplicity",
+      "theoremId": "P06",
+      "arxivOrDoi": "arXiv:2608.13637",
+      "title": "More than two thirds of the zeros of the Riemann zeta function are simple and on the critical line",
+      "presetId": "rh_only",
+      "presetLabel": "RH Only",
+      "trapFocus": "simplicity-vs-location-blur: RH puts 100% of zeros on Re(s)=1/2 without proving multiplicity 1 (>=67.25% stays live)",
+      "expectedOutcome": "BOUND_TIGHTENED",
+      "expectedConjecture": "DENSITY_BOUND",
+      "expectedPolarity": "ASSUMES_TRUE",
+      "expectedFallback": true,
+      "v1": {
+        "conversationId": "ts-v1-case-06-alpoge-simplicity-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-06-alpoge-simplicity-2026-11-20-17-25-08",
+        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
+        "conjectureType": "Riemann Hypothesis (formerly conditional on RH via Montgomery 1973)",
+        "polarity": "positive",
+        "hasFallback": true,
+        "exactMatch": false,
+        "authorAlert": "The paper already removes the RH dependence via a rank-trace inequality, so no conditional dependency remains. Note the world-state note about RH being proved does not affect this unconditional result.",
+        "totalTokens": 705,
+        "wallMs": 1734,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 40,
+            "summary": "arXiv:2608.13637 (math.NT) — More than two thirds of the zeta zeros are simple and on"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 1693,
+            "summary": "Naive direct JSON classification (228 tok)",
+            "inputTokens": 477,
+            "outputTokens": 228
+          }
+        ]
+      },
+      "v2": {
+        "conversationId": "ts-v2-case-06-alpoge-simplicity-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-06-alpoge-simplicity-2026-11-20-17-25-08",
+        "predictedOutcome": "BOUND_TIGHTENED",
+        "conjectureType": "DENSITY_BOUND",
+        "polarity": "ASSUMES_TRUE",
+        "hasFallback": true,
+        "exactMatch": true,
+        "authorAlert": "Your Theorem 1.1 is unconditional, so RH does not obsolete it: RH places 100% of zeros on Re(s)=1/2 but does not prove simplicity, so your >=67.25% simplicity-with-multiplicity bound remains live and sharpens to a purely multiplicity statement. Keep the location and simplicity components clearly separated, since RH alone permits multiple zeros on the critical line.",
+        "totalTokens": 879,
+        "wallMs": 1050,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 37,
+            "summary": "arXiv:2608.13637 (math.NT) — More than two thirds of the zeta zeros are simple and on"
+          },
+          {
+            "kind": "tool",
+            "name": "scan_conditional_clauses",
+            "durationMs": 0,
+            "summary": "DENSITY_BOUND · fallback=true"
+          },
+          {
+            "kind": "tool",
+            "name": "traverse_citation_hops",
+            "durationMs": 0,
+            "summary": "hop=2 via P05 -> P06"
+          },
+          {
+            "kind": "tool",
+            "name": "evaluate_world_state_diff",
+            "durationMs": 0,
+            "summary": "BOUND_TIGHTENED (Simplicity >= 67.25% Live)"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 1012,
+            "summary": "Synthesized grounded verdict (150 tok)",
+            "inputTokens": 729,
+            "outputTokens": 150
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "case-07-artin-erh-gap",
+      "theoremId": "P14",
+      "arxivOrDoi": "doi:10.1515/crll.1967.225.209",
+      "title": "On Artin's conjecture (Hooley 1967) & Euclidean rings of algebraic integers (Weinberger 1973)",
+      "presetId": "alpoge_rh_grh",
+      "presetLabel": "Alpöge Claim (RH + GRH)",
+      "trapFocus": "rh-grh-erh-conflated: Hooley Artin primitive roots & Weinberger PID=>Euclidean still wait on Kummer Dedekind ERH",
+      "expectedOutcome": "STILL_CONDITIONAL",
+      "expectedConjecture": "ERH",
+      "expectedPolarity": "ASSUMES_TRUE",
+      "expectedFallback": false,
+      "v1": {
+        "conversationId": "ts-v1-case-07-artin-erh-gap-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-07-artin-erh-gap-2026-11-20-17-25-08",
+        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
+        "conjectureType": "GRH for Dedekind zeta-functions of Kummer fields Q(zeta_q, a^{1/q})",
+        "polarity": "conditional",
+        "hasFallback": false,
+        "exactMatch": false,
+        "authorAlert": "Hooley's conditional proof of Artin's conjecture and Weinberger's conditional Euclidean theorem both rest on GRH for Dedekind zeta-functions of Kummer fields, which follows from the announced proof of RH (via GRH). Both results become unconditional.",
+        "totalTokens": 745,
+        "wallMs": 1379,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 0,
+            "summary": "doi:10.1515/crll.1967.225.209 (math.NT) — On Artin's conjecture (Hooley 1967) & Euclidean rings of"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 1379,
+            "summary": "Naive direct JSON classification (348 tok)",
+            "inputTokens": 397,
+            "outputTokens": 348
+          }
+        ]
+      },
+      "v2": {
+        "conversationId": "ts-v2-case-07-artin-erh-gap-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-07-artin-erh-gap-2026-11-20-17-25-08",
+        "predictedOutcome": "STILL_CONDITIONAL",
+        "conjectureType": "ERH",
+        "polarity": "ASSUMES_TRUE",
+        "hasFallback": false,
+        "exactMatch": true,
+        "authorAlert": "STILL BLOCKED even if Alpöge's Nov 20 RH + Dirichlet GRH archive passes! Both Hooley and Weinberger require ERH for non-abelian Kummer Dedekind zeta functions.",
+        "totalTokens": 758,
+        "wallMs": 445,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 0,
+            "summary": "doi:10.1515/crll.1967.225.209 (math.NT) — On Artin's conjecture (Hooley 1967) & Euclidean rings of"
+          },
+          {
+            "kind": "tool",
+            "name": "scan_conditional_clauses",
+            "durationMs": 0,
+            "summary": "ERH · fallback=false"
+          },
+          {
+            "kind": "tool",
+            "name": "traverse_citation_hops",
+            "durationMs": 0,
+            "summary": "hop=1 via ROOT_ERH -> P14"
+          },
+          {
+            "kind": "tool",
+            "name": "evaluate_world_state_diff",
+            "durationMs": 0,
+            "summary": "STILL_CONDITIONAL (Waiting on ERH)"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 445,
+            "summary": "Synthesized grounded verdict (14 tok)",
+            "inputTokens": 744,
+            "outputTokens": 14
+          }
+        ]
+      }
+    },
+    {
+      "caseId": "case-08-lagarias-iff",
+      "theoremId": "P02",
+      "arxivOrDoi": "arXiv:math/0008177",
+      "title": "An Elementary Problem Equivalent to the Riemann Hypothesis",
+      "presetId": "rh_only",
+      "presetLabel": "RH Only",
+      "trapFocus": "Exact biconditional RH equivalence (math/0008177) upgrades immediately under classical RH alone",
+      "expectedOutcome": "UPGRADED_UNCONDITIONAL",
+      "expectedConjecture": "RH",
+      "expectedPolarity": "ASSUMES_TRUE",
+      "expectedFallback": false,
+      "v1": {
+        "conversationId": "ts-v1-case-08-lagarias-iff-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-08-lagarias-iff-2026-11-20-17-25-08",
+        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
+        "conjectureType": "RH-equivalence",
+        "polarity": "equivalent-to-RH",
+        "hasFallback": true,
+        "exactMatch": false,
+        "authorAlert": "...",
+        "totalTokens": 441,
+        "wallMs": 1021,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 135,
+            "summary": "arXiv:math/0008177 (math.NT) — An Elementary Problem Equivalent to the Riemann Hypothes"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 885,
+            "summary": "Naive direct JSON classification (132 tok)",
+            "inputTokens": 309,
+            "outputTokens": 132
+          }
+        ]
+      },
+      "v2": {
+        "conversationId": "ts-v2-case-08-lagarias-iff-2026-11-20-17-25-08",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-08-lagarias-iff-2026-11-20-17-25-08",
+        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
+        "conjectureType": "RH",
+        "polarity": "ASSUMES_TRUE",
+        "hasFallback": false,
+        "exactMatch": true,
+        "authorAlert": "In this world-state classical RH is a theorem, so Lagarias's Theorem 1.1 ceases to be an equivalence with an open problem and becomes an unconditional inequality: sigma(n) <= H_n + exp(H_n) log(H_n) for all n >= 1, with equality only at n = 1. The proof needs only classical RH via Robin (1984) and Schoenfeld (1976); GRH and ERH remain open but are irrelevant here since they specialize to RH on Q, never the reverse.",
+        "totalTokens": 815,
+        "wallMs": 1079,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "fetch_arxiv_metadata",
+            "durationMs": 136,
+            "summary": "arXiv:math/0008177 (math.NT) — An Elementary Problem Equivalent to the Riemann Hypothes"
+          },
+          {
+            "kind": "tool",
+            "name": "scan_conditional_clauses",
+            "durationMs": 0,
+            "summary": "RH · fallback=false"
+          },
+          {
+            "kind": "tool",
+            "name": "traverse_citation_hops",
+            "durationMs": 0,
+            "summary": "hop=2 via P01 -> P02"
+          },
+          {
+            "kind": "tool",
+            "name": "evaluate_world_state_diff",
+            "durationMs": 0,
+            "summary": "UPGRADED_UNCONDITIONAL (Upgraded: New Theorem)"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 942,
+            "summary": "Synthesized grounded verdict (160 tok)",
+            "inputTokens": 655,
+            "outputTokens": 160
+          }
+        ]
+      }
+    }
+  ]
+}

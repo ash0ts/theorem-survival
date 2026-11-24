@@ -1,0 +1,448 @@
+{
+  "generatedAtUtc": "2026-11-24T12:37:53.058Z",
+  "rawPoolCount": 3800,
+  "rawPoolFulltextCount": 2894,
+  "rawPoolAbstractOnlyCount": 906,
+  "explorerTotalCount": 3779,
+  "explorerLandmarksCount": 17,
+  "explorerEvidenceBreakdown": {
+    "fulltext": 2877,
+    "curatedPrimary": 17,
+    "abstractOnly": 885
+  },
+  "explorerByConjecture": {
+    "RH": 533,
+    "GRH_DIRICHLET": 477,
+    "BEYOND_DIRICHLET": 1035,
+    "UNCLEAR": 135,
+    "DENSITY_BOUND": 70,
+    "MENTION_ONLY": 1529
+  },
+  "explorerByScopeGroup": {
+    "COVERED": 1010,
+    "BEYOND": 1035,
+    "UNCLEAR": 135,
+    "ALREADY_PROVEN": 70,
+    "MENTION_ONLY": 1529
+  },
+  "explorerByTopic": {
+    "Primes & Number Theory": 2978,
+    "Algorithms & Complexity": 348,
+    "Algebra, Knots & Quantum": 305,
+    "Cryptography & Security": 148
+  },
+  "explorerScenarioOutcomes": {
+    "checked_nov24": {
+      "UPGRADED_UNCONDITIONAL": 393,
+      "BOUND_TIGHTENED": 643,
+      "STILL_CONDITIONAL": 1170,
+      "VACUOUS_OR_SUPERSEDED": 44,
+      "HYPOTHESIS_FALSIFIED": 0,
+      "MENTION_ONLY_UNCHANGED": 1529
+    },
+    "pre_nov20_open": {
+      "UPGRADED_UNCONDITIONAL": 0,
+      "BOUND_TIGHTENED": 70,
+      "STILL_CONDITIONAL": 2180,
+      "VACUOUS_OR_SUPERSEDED": 0,
+      "HYPOTHESIS_FALSIFIED": 0,
+      "MENTION_ONLY_UNCHANGED": 1529
+    },
+    "rh_only": {
+      "UPGRADED_UNCONDITIONAL": 224,
+      "BOUND_TIGHTENED": 367,
+      "STILL_CONDITIONAL": 1647,
+      "VACUOUS_OR_SUPERSEDED": 12,
+      "HYPOTHESIS_FALSIFIED": 0,
+      "MENTION_ONLY_UNCHANGED": 1529
+    },
+    "full_ladder": {
+      "UPGRADED_UNCONDITIONAL": 943,
+      "BOUND_TIGHTENED": 1125,
+      "STILL_CONDITIONAL": 135,
+      "VACUOUS_OR_SUPERSEDED": 47,
+      "HYPOTHESIS_FALSIFIED": 0,
+      "MENTION_ONLY_UNCHANGED": 1529
+    },
+    "siegel_zero_twist": {
+      "UPGRADED_UNCONDITIONAL": 244,
+      "BOUND_TIGHTENED": 382,
+      "STILL_CONDITIONAL": 135,
+      "VACUOUS_OR_SUPERSEDED": 12,
+      "HYPOTHESIS_FALSIFIED": 1477,
+      "MENTION_ONLY_UNCHANGED": 1529
+    },
+    "rh_false": {
+      "UPGRADED_UNCONDITIONAL": 10,
+      "BOUND_TIGHTENED": 74,
+      "STILL_CONDITIONAL": 33,
+      "VACUOUS_OR_SUPERSEDED": 0,
+      "HYPOTHESIS_FALSIFIED": 2133,
+      "MENTION_ONLY_UNCHANGED": 1529
+    }
+  },
+  "top100EvidenceBreakdown": {
+    "fulltext": 66,
+    "abstractOnly": 34
+  },
+  "top100ByConjecture": {
+    "RH": 10,
+    "GRH_DIRICHLET": 14,
+    "BEYOND_DIRICHLET": 26,
+    "UNCLEAR": 1,
+    "DENSITY_BOUND": 5,
+    "MENTION_ONLY": 44
+  },
+  "top100ScenarioOutcomes": {
+    "checked_nov24": {
+      "UPGRADED_UNCONDITIONAL": 6,
+      "BOUND_TIGHTENED": 21,
+      "STILL_CONDITIONAL": 27,
+      "VACUOUS_OR_SUPERSEDED": 2,
+      "HYPOTHESIS_FALSIFIED": 0,
+      "MENTION_ONLY_UNCHANGED": 44
+    },
+    "pre_nov20_open": {
+      "UPGRADED_UNCONDITIONAL": 0,
+      "BOUND_TIGHTENED": 5,
+      "STILL_CONDITIONAL": 51,
+      "VACUOUS_OR_SUPERSEDED": 0,
+      "HYPOTHESIS_FALSIFIED": 0,
+      "MENTION_ONLY_UNCHANGED": 44
+    },
+    "rh_only": {
+      "UPGRADED_UNCONDITIONAL": 4,
+      "BOUND_TIGHTENED": 9,
+      "STILL_CONDITIONAL": 41,
+      "VACUOUS_OR_SUPERSEDED": 2,
+      "HYPOTHESIS_FALSIFIED": 0,
+      "MENTION_ONLY_UNCHANGED": 44
+    },
+    "full_ladder": {
+      "UPGRADED_UNCONDITIONAL": 20,
+      "BOUND_TIGHTENED": 33,
+      "STILL_CONDITIONAL": 1,
+      "VACUOUS_OR_SUPERSEDED": 2,
+      "HYPOTHESIS_FALSIFIED": 0,
+      "MENTION_ONLY_UNCHANGED": 44
+    },
+    "siegel_zero_twist": {
+      "UPGRADED_UNCONDITIONAL": 4,
+      "BOUND_TIGHTENED": 9,
+      "STILL_CONDITIONAL": 1,
+      "VACUOUS_OR_SUPERSEDED": 2,
+      "HYPOTHESIS_FALSIFIED": 40,
+      "MENTION_ONLY_UNCHANGED": 44
+    },
+    "rh_false": {
+      "UPGRADED_UNCONDITIONAL": 0,
+      "BOUND_TIGHTENED": 6,
+      "STILL_CONDITIONAL": 0,
+      "VACUOUS_OR_SUPERSEDED": 0,
+      "HYPOTHESIS_FALSIFIED": 50,
+      "MENTION_ONLY_UNCHANGED": 44
+    }
+  },
+  "top25MostCited": [
+    {
+      "title": "Elliptic Curve Cryptosystems",
+      "authors": "Neal Koblitz",
+      "yearLabel": "1987",
+      "arxivOrDoi": "doi:10.1090/s0025-5718-1987-0866109-5",
+      "citedByCount": 6681,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "fulltext",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "PRIMES is in P",
+      "authors": "Manindra Agrawal, Neeraj Kayal, Nitin Saxena",
+      "yearLabel": "2004",
+      "arxivOrDoi": "doi:10.4007/annals.2004.160.781",
+      "citedByCount": 1371,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "fulltext",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "On Artin's conjecture (Hooley 1967) & Euclidean rings of algebraic integers (Weinberger 1973)",
+      "authors": "Christopher Hooley; Peter J. Weinberger",
+      "yearLabel": "1967 / 1973",
+      "arxivOrDoi": "doi:10.1515/crll.1967.225.209",
+      "citedByCount": 980,
+      "conjectureType": "BEYOND_DIRICHLET",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "curated_primary",
+      "checkedNov24Outcome": "STILL_CONDITIONAL",
+      "checkedNov24Badge": "Still Needs Number-Field ERH"
+    },
+    {
+      "title": "Explicit bounds for primality testing and related problems",
+      "authors": "Gary L. Miller (1976), Eric Bach (1990)",
+      "yearLabel": "1990",
+      "arxivOrDoi": "doi:10.1090/S0025-5718-1990-1023756-8",
+      "citedByCount": 890,
+      "conjectureType": "GRH_DIRICHLET",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "curated_primary",
+      "checkedNov24Outcome": "BOUND_TIGHTENED",
+      "checkedNov24Badge": "Gets Faster / Tighter"
+    },
+    {
+      "title": "Random Matrix Theory and ζ(1/2+ it)",
+      "authors": "Jonathan P. Keating, N. C. Snaith",
+      "yearLabel": "2000",
+      "arxivOrDoi": "doi:10.1007/s002200000261",
+      "citedByCount": 889,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "abstract_only",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "Hyperuniform states of matter",
+      "authors": "Salvatore Torquato",
+      "yearLabel": "2018",
+      "arxivOrDoi": "arXiv:1801.06924",
+      "citedByCount": 674,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "fulltext",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "A Taxonomy of Pairing-Friendly Elliptic Curves",
+      "authors": "David Mandell Freeman, Michael Scott, Edlyn Teske",
+      "yearLabel": "2009",
+      "arxivOrDoi": "doi:10.1007/s00145-009-9048-z",
+      "citedByCount": 562,
+      "conjectureType": "GRH_DIRICHLET",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "fulltext",
+      "checkedNov24Outcome": "BOUND_TIGHTENED",
+      "checkedNov24Badge": "Gets Faster / Tighter"
+    },
+    {
+      "title": "Sharper bounds for the Chebyshev functions theta(x) and psi(x). II",
+      "authors": "Lowell Schoenfeld",
+      "yearLabel": "1976",
+      "arxivOrDoi": "doi:10.1090/S0025-5718-1976-0457374-X",
+      "citedByCount": 540,
+      "conjectureType": "RH",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "curated_primary",
+      "checkedNov24Outcome": "BOUND_TIGHTENED",
+      "checkedNov24Badge": "Gets Faster / Tighter"
+    },
+    {
+      "title": "Linear equations in primes",
+      "authors": "Ben Green, Terence Tao",
+      "yearLabel": "2010",
+      "arxivOrDoi": "arXiv:math/0606088",
+      "citedByCount": 506,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "fulltext",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "Cryptographic Hash Functions from Expander Graphs",
+      "authors": "Denis Xavier Charles, Kristin Lauter, Eyal Z. Goren",
+      "yearLabel": "2007",
+      "arxivOrDoi": "doi:10.1007/s00145-007-9002-x",
+      "citedByCount": 494,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "abstract_only",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "Low lying zeros of families of L-functions",
+      "authors": "Henryk Iwaniec, Wenzhi Luo, Peter Sarnak",
+      "yearLabel": "1999",
+      "arxivOrDoi": "arXiv:math/9901141",
+      "citedByCount": 482,
+      "conjectureType": "BEYOND_DIRICHLET",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "abstract_only",
+      "checkedNov24Outcome": "STILL_CONDITIONAL",
+      "checkedNov24Badge": "Still Needs Number-Field ERH"
+    },
+    {
+      "title": "Grandes valeurs de la fonction somme des diviseurs et hypothese de Riemann",
+      "authors": "Guy Robin",
+      "yearLabel": "1984",
+      "arxivOrDoi": "doi:10.1016/0021-8693(84)90103-0",
+      "citedByCount": 420,
+      "conjectureType": "RH",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "curated_primary",
+      "checkedNov24Outcome": "UPGRADED_UNCONDITIONAL",
+      "checkedNov24Badge": "Machine-Checked in Lean 4"
+    },
+    {
+      "title": "Integers without large prime factors",
+      "authors": "Adolf Hildebrand, Gérald Tenenbaum",
+      "yearLabel": "1993",
+      "arxivOrDoi": "doi:10.5802/jtnb.101",
+      "citedByCount": 375,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "fulltext",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "Signature schemes based on the strong RSA assumption",
+      "authors": "Ronald Cramer, Victor Shoup",
+      "yearLabel": "2000",
+      "arxivOrDoi": "doi:10.1145/357830.357847",
+      "citedByCount": 356,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "abstract_only",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "Sur la distribution des nombres premiers",
+      "authors": "Helge von Koch",
+      "yearLabel": "1901",
+      "arxivOrDoi": "doi:10.1007/bf02403071",
+      "citedByCount": 334,
+      "conjectureType": "RH",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "abstract_only",
+      "checkedNov24Outcome": "BOUND_TIGHTENED",
+      "checkedNov24Badge": "Gets Faster / Tighter"
+    },
+    {
+      "title": "Constructing elliptic curve isogenies in quantum subexponential time",
+      "authors": "Andrew M. Childs, David Jao, Vladimir Soukharev",
+      "yearLabel": "2013",
+      "arxivOrDoi": "arXiv:1012.4019",
+      "citedByCount": 327,
+      "conjectureType": "BEYOND_DIRICHLET",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "fulltext",
+      "checkedNov24Outcome": "STILL_CONDITIONAL",
+      "checkedNov24Badge": "Still Needs Number-Field ERH"
+    },
+    {
+      "title": "Moments of the Riemann zeta-function",
+      "authors": "K. Soundararajan",
+      "yearLabel": "2006",
+      "arxivOrDoi": "arXiv:math/0612106",
+      "citedByCount": 325,
+      "conjectureType": "RH",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "fulltext",
+      "checkedNov24Outcome": "UPGRADED_UNCONDITIONAL",
+      "checkedNov24Badge": "Becomes Proven"
+    },
+    {
+      "title": "Chebyshev's Bias",
+      "authors": "Michael Rubinstein, Peter Sarnak",
+      "yearLabel": "1994",
+      "arxivOrDoi": "doi:10.1080/10586458.1994.10504289",
+      "citedByCount": 313,
+      "conjectureType": "BEYOND_DIRICHLET",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "abstract_only",
+      "checkedNov24Outcome": "STILL_CONDITIONAL",
+      "checkedNov24Badge": "Still Needs Number-Field ERH"
+    },
+    {
+      "title": "An Elementary Problem Equivalent to the Riemann Hypothesis",
+      "authors": "Jeffrey C. Lagarias",
+      "yearLabel": "2002",
+      "arxivOrDoi": "arXiv:math/0008177",
+      "citedByCount": 310,
+      "conjectureType": "RH",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "curated_primary",
+      "checkedNov24Outcome": "UPGRADED_UNCONDITIONAL",
+      "checkedNov24Badge": "Machine-Checked in Lean 4"
+    },
+    {
+      "title": "Nonvanishing of Quadratic Dirichlet L-Functions at S = ½",
+      "authors": "K. Soundararajan",
+      "yearLabel": "2000",
+      "arxivOrDoi": "arXiv:math/9902163",
+      "citedByCount": 290,
+      "conjectureType": "DENSITY_BOUND",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "abstract_only",
+      "checkedNov24Outcome": "BOUND_TIGHTENED",
+      "checkedNov24Badge": "Already Proven"
+    },
+    {
+      "title": "Empirical verification of the even Goldbach conjecture and computation of prime gaps up to 4⋅10¹⁸",
+      "authors": "Tomas Antonio Mendes Oliveira e Silva, Siegfried Herzog, Silvio Pardi",
+      "yearLabel": "2013",
+      "arxivOrDoi": "doi:10.1090/s0025-5718-2013-02787-1",
+      "citedByCount": 285,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "fulltext",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "Do All Elliptic Curves of the Same Order Have the Same Difficulty of Discrete Log? (Expander graphs based on GRH)",
+      "authors": "David Jao, Stephen D. Miller, Ramarathnam Venkatesan",
+      "yearLabel": "2005 / 2009",
+      "arxivOrDoi": "arXiv:math/0411378",
+      "citedByCount": 280,
+      "conjectureType": "BEYOND_DIRICHLET",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "curated_primary",
+      "checkedNov24Outcome": "STILL_CONDITIONAL",
+      "checkedNov24Badge": "Still Needs Number-Field ERH"
+    },
+    {
+      "title": "Rankin-Selberg L-functions in the level aspect",
+      "authors": "Emmanuel Kowalski, Philippe Michel, Jeffrey M. VanderKam",
+      "yearLabel": "2002",
+      "arxivOrDoi": "doi:10.1215/s0012-7094-02-11416-1",
+      "citedByCount": 271,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "abstract_only",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "The Density of Rational Points on Curves and Surfaces",
+      "authors": "David Rodney Heath-Brown",
+      "yearLabel": "2002",
+      "arxivOrDoi": "doi:10.2307/3062125",
+      "citedByCount": 261,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "fulltext",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    },
+    {
+      "title": "Almost all primes can be quickly certified",
+      "authors": "Shafi Goldwasser, Joe Kilian",
+      "yearLabel": "1986",
+      "arxivOrDoi": "doi:10.1145/12130.12162",
+      "citedByCount": 241,
+      "conjectureType": "MENTION_ONLY",
+      "polarity": "ASSUMES_TRUE",
+      "evidenceTier": "abstract_only",
+      "checkedNov24Outcome": "MENTION_ONLY_UNCHANGED",
+      "checkedNov24Badge": "Only Mentions It"
+    }
+  ]
+}

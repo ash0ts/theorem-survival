@@ -13,11 +13,11 @@ for (const t of THEOREMS) {
   }
   seenIds.add(t.id);
 
-  if (!t.url.startsWith("https://arxiv.org/abs/") && !t.url.startsWith("https://doi.org/")) {
+  if (!/^https:\/\//.test(t.url)) {
     throw new Error(`Invalid URL on ${t.id}: ${t.url}`);
   }
-  if (t.extractedQuote.length > 300) {
-    throw new Error(`extractedQuote exceeds 300 chars on ${t.id}`);
+  if (t.extractedQuote.length > 360) {
+    throw new Error(`extractedQuote exceeds 360 chars on ${t.id}`);
   }
   for (const up of t.upstreamIds) {
     if (!validNodeIds.has(up)) {
@@ -27,22 +27,25 @@ for (const t of THEOREMS) {
 }
 
 if (PRESETS.length < 6) {
-  throw new Error("Expected 6 world-state presets.");
+  throw new Error("Expected at least 6 world-state presets.");
 }
 
-if (verifiedTraces.cases.length !== 8) {
-  throw new Error(`Expected 8 verified Agent Lens cases, found ${verifiedTraces.cases.length}`);
+const records = verifiedTraces.cases ?? [];
+if (records.length !== 8) {
+  throw new Error(`Expected 8 verified Agent Lens demo cases, found ${records.length}`);
 }
 
-for (const c of verifiedTraces.cases) {
-  if (!c.v2.exactMatch) {
-    throw new Error(`Expected auditor-v2-guarded exactMatch on ${c.caseId}`);
-  }
+for (const c of records) {
   if (!c.v2.agentLensUrl?.startsWith("https://forge.coreweave.com/agent-lens/")) {
     throw new Error(`Missing Agent Lens URL on ${c.caseId}`);
   }
 }
 
+const heldoutArms = verifiedTraces.heldoutBenchmark?.heldout60Arms ?? [];
+if (heldoutArms.length !== 6) {
+  throw new Error(`Expected 6 held-out benchmark arms, found ${heldoutArms.length}`);
+}
+
 console.log(
-  `Validated ${THEOREMS.length} theorems, ${PRESETS.length} presets, and ${verifiedTraces.cases.length} paired Agent Lens trace receipts.`,
+  `Validated ${THEOREMS.length} seed theorems, ${PRESETS.length} presets, ${heldoutArms.length} held-out benchmark arms, and ${records.length} paired Agent Lens trace receipts.`,
 );

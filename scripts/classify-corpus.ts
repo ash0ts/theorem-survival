@@ -1,103 +1,151 @@
 /**
- * Audits all harvested arXiv papers in `out/arxiv-raw.json` through CoreWeave Forge Serverless
- * Inference (`zai-org/GLM-5.3-Flash`) and traces each paper audit to CoreWeave Agent Lens
- * (`wandb/theorem-survival`), producing `out/corpus-classified.json`.
+ * Step 6: Full-pool theorem dependency audit (`3,800` pooled works).
+ *
+ * Streams `out/pool-raw.json` through `fetchPaperFullText` (cached under gitignored
+ * `out/fulltext/`) and classifies every work with `zai-org/GLM-5.3-Flash`
+ * (`auditor-v3-pool`), recording OpenTelemetry GenAI traces to CoreWeave Agent Lens
+ * (`wandb/theorem-survival`).
+ *
+ * Isolation invariant: This script MUST NOT import gold sets (`research/gold/*`)
+ * or landmark lookup tables (`THEOREMS`, `LANDMARK_THEOREMS`).
  */
 import fs from "node:fs";
 import path from "node:path";
+import type {
+  ConjectureType,
+  EvidenceTier,
+  HarvestSource,
+  ImportanceTier,
+  Polarity,
+  TopicBucket,
+} from "../src/data/theorems";
+import { scanTextScopeSignals } from "../server/auditor";
+import { fetchPaperFullText } from "../server/fulltext";
 import { resolveForgeCredentials } from "../server/credentials";
-import { chatCompletion, parseJsonObject } from "../server/llm";
+import {
+  chatCompletion,
+  parseJsonObjectStrict,
+  readSpendLedger,
+} from "../server/llm";
 import { createTraceRunner } from "../server/tracing";
 
-interface RawArxivEntry {
-  arxivId: string;
+interface RawPoolWork {
+  poolId: string;
+  arxivId?: string;
+  doi?: string;
+  openalexId?: string;
   title: string;
   authors: string;
-  published: string;
   year: number;
+  publishedDate?: string;
   primaryCategory: string;
-  categories: string[];
-  abstract: string;
+  abstractText: string;
+  citedByCount: number | null;
+  importanceRank: number;
+  importanceTier: ImportanceTier;
+  foundBySources: HarvestSource[];
+  queryTags: string[];
+  oaUrl?: string;
   url: string;
-  matchedQuery: string;
+  inAttempt1Corpus: boolean;
+  isNamedLandmark: boolean;
 }
 
-export interface ClassifiedCorpusEntry {
-  arxivId: string;
+export interface ClassifiedPoolRecord {
+  poolId: string;
+  workKey: string;
+  arxivId?: string;
+  doi?: string;
+  openalexId?: string;
+  oaUrl?: string;
   url: string;
   title: string;
   authors: string;
   year: number;
   yearLabel: string;
   primaryCategory: string;
-  topicBucket:
-    | "Primes & Number Theory"
-    | "Algorithms & Complexity"
-    | "Cryptography & Security"
-    | "Algebra, Knots & Quantum";
+  topicBucket: TopicBucket;
   shortLabel: string;
   theoremLabel: string;
-  conjectureType: "RH" | "GRH" | "ERH" | "DENSITY_BOUND";
-  polarity: "ASSUMES_TRUE" | "ASSUMES_FALSE";
+  conjectureType: ConjectureType;
+  polarity: Polarity;
   hasUnconditionalFallback: boolean;
   alreadyUnconditional: boolean;
   plainSummary: string;
   plainImpactUpgrade: string;
   plainFallbackNote: string;
   extractedQuote: string;
+  quoteLocator: string;
+  evidenceTier: EvidenceTier;
+  noFulltext: boolean;
+  fulltextFormat: string;
+  citedByCount: number | null;
+  importanceRank: number;
+  importanceTier: ImportanceTier;
+  foundBySources: HarvestSource[];
+  inAttempt1Corpus: boolean;
+  isNamedLandmark: boolean;
   conversationId: string;
+  parseError: boolean;
 }
 
-const LANDMARK_ARXIV_IDS = new Set([
-  "2610.27830",
-  "2511.21970",
-  "1805.05988",
-  "2405.20552",
-  "2608.13637",
-  "2508.17701",
-  "1902.07894",
-  "2009.04919",
-  "1602.03604",
-  "1804.04116",
-  "2509.10455",
-  "1402.7358",
+const VALID_CONJECTURES = new Set<ConjectureType>([
+  "RH",
+  "GRH_DIRICHLET",
+  "BEYOND_DIRICHLET",
+  "UNCLEAR",
+  "DENSITY_BOUND",
+  "MENTION_ONLY",
 ]);
 
-const SYSTEM_PROMPT = `You audit real arXiv mathematics and computer science abstracts for a public explorer showing what changes if the Riemann Hypothesis (RH), Generalized RH (GRH), or Extended RH (ERH) is proved.
+const VALID_BUCKETS = new Set<TopicBucket>([
+  "Primes & Number Theory",
+  "Algorithms & Complexity",
+  "Cryptography & Security",
+  "Algebra, Knots & Quantum",
+]);
 
-Return ONLY valid JSON with these exact keys:
-{
-  "relevant": boolean,
-  "conjectureType": "RH" | "GRH" | "ERH" | "DENSITY_BOUND",
-  "polarity": "ASSUMES_TRUE" | "ASSUMES_FALSE",
-  "hasUnconditionalFallback": boolean,
-  "alreadyUnconditional": boolean,
-  "topicBucket": "Primes & Number Theory" | "Algorithms & Complexity" | "Cryptography & Security" | "Algebra, Knots & Quantum",
-  "shortLabel": "3 to 5 plain words naming the topic",
-  "theoremLabel": "Theorem number if mentioned in abstract, else Main Result",
-  "plainSummary": "One plain-English sentence (12-24 words) explaining what the paper proves so a software engineer or curious reader understands it immediately without specialist acronyms.",
-  "plainImpactUpgrade": "One plain-English sentence (12-22 words) explaining what concretely changes for this result if its assumed conjecture holds.",
-  "plainFallbackNote": "One plain-English sentence stating what unconditional result already exists without the conjecture, or saying no unconditional version is proved in the abstract.",
-  "extractedQuote": "Verbatim 1-sentence quote copied from the abstract showing the conditional assumption or unconditional removal."
-}
+const POOL_SYSTEM_PROMPT = `You are TheoremSurvival Auditor v3 (Full-Text Pool Verifier). You audit mathematical and computer-science papers to determine what a machine-checked proof of the classical Riemann Hypothesis (RH) plus the Generalized Riemann Hypothesis for Dirichlet L-functions L(s, chi) over Z/qZ actually settles — and what it leaves open or unchanged.
 
-Classification rules:
-1. Set "relevant": false if the paper claims to prove/disprove RH itself, is a physics analogy with no conditional theorem, or only mentions Riemann surfaces/manifolds/zeta casually without a conditional dependency on RH/GRH/ERH/Siegel zeros.
-2. Distinguish conjectures carefully:
-   - "RH": classical Riemann zeta(s) only.
-   - "GRH": Generalized Riemann Hypothesis, Dirichlet L-functions, primes in arithmetic progressions, or standard CS/crypto "assuming GRH" / "modulo GRH".
-   - "ERH": Extended Riemann Hypothesis, Dedekind zeta_K(s), number fields, Artin L-functions, Hecke L-functions, or class groups of general number fields when Dedekind/ERH is specified.
-   - "DENSITY_BOUND": paper proves an ALREADY UNCONDITIONAL theorem (e.g. removing a previous GRH assumption or proving an unconditional zero-density bound). Set "alreadyUnconditional": true for these!
-3. Set "polarity": "ASSUMES_FALSE" ONLY when the theorem derives consequences from Siegel zeros (Landau-Siegel exceptional zeros), Deuring-Heilbronn phenomenon, or explicitly assumes RH or GRH is FALSE. Note: if a paper rules out Siegel zeros or proves a bound assuming NO Siegel zeros exist, that is "ASSUMES_TRUE" on GRH. Carefully check whether Siegel zeros are ASSUMED TO EXIST ("if Siegel zeros exist" -> ASSUMES_FALSE) vs ASSUMED ABSENT.
-4. Set "hasUnconditionalFallback": true if the abstract ALSO proves a weaker/slower unconditional bound alongside the conditional one, OR improves the exponent/runtime of an already-known unconditional problem, OR is alreadyUnconditional.
-5. Keep "plainSummary" and "plainImpactUpgrade" crystal clear, concrete, and completely free of unexplained acronyms.`;
+CONJECTURE TAXONOMY (choose EXACTLY ONE for "conjectureType"):
+1. "RH": Paper proves a conditional theorem whose ONLY unproved hypothesis is the classical Riemann Hypothesis for the Riemann zeta function zeta(s) over Q (with NO extra unproved hypotheses such as simplicity of zeros or linear independence of zeros). Elementary integer arithmetic functions like sigma(n), phi(n), or Dedekind's arithmetic function Psi(n) = n * prod_{p|n}(1 + 1/p) on integers/primorials belong to classical "RH", NOT number-field Dedekind zeta.
+2. "GRH_DIRICHLET": Paper proves a conditional theorem assuming ONLY the Generalized or Extended Riemann Hypothesis for Dirichlet L-functions L(s, chi) modulo an integer q over Z/qZ (e.g., deterministic primality witness bounds mod n, least quadratic non-residue or primitive root mod p, primes in arithmetic progressions a mod q, circle-method estimates over Dirichlet characters, moments/zeros of primitive Dirichlet L-functions, or counterfactual consequences of exceptional real Landau-Siegel zeros of Dirichlet L-functions).
+3. "BEYOND_DIRICHLET": Paper proves a conditional theorem whose hypothesis goes BEYOND classical zeta(s) and Dirichlet L(s, chi):
+   - Dedekind zeta functions zeta_K(s) of algebraic number fields K != Q (e.g., Artin primitive-root / near-primitive-root density over Kummer fields, prime-ideal norm bounds, ideal class group generation, Euclidean number fields, discriminant lower bounds, or subexponential/quantum ideal-class-group and ordinary-curve isogeny algorithms).
+   - The effective Chebotarev density theorem over Galois extensions — INCLUDING complexity, algebraic-geometry, topology, and cryptography theorems that write "assuming GRH" in the abstract while reducing polynomial systems modulo primes (Hilbert's Nullstellensatz in AM), testing knot or 3-manifold group representations over finite fields, or computing supersingular elliptic-curve endomorphism rings and isogeny paths via quaternion/class-group ideals.
+   - Hecke character L-functions, Artin L-functions, or modular / elliptic-curve / Maass / automorphic L-functions.
+   - Conditional theorems requiring RH or GRH TOGETHER WITH an extra unproved hypothesis (linear independence of zeros / Grand Simplicity, simplicity of zeros, pair-correlation conjectures, or Generalized Ramanujan Conjecture).
+4. "UNCLEAR": Paper genuinely proves a theorem conditional on "GRH" or "ERH", AND the provided text gives insufficient mathematical detail to tell whether Dirichlet L(s, chi) over Z/qZ suffices or number-field / automorphic L-functions are required. Never guess "GRH_DIRICHLET" when "GRH" is genuinely ambiguous in the provided text — choose "UNCLEAR".
+5. "DENSITY_BOUND": Paper proves an ALREADY UNCONDITIONAL partial-progress theorem toward RH or GRH (unconditional zero-density bounds, unconditional zero-free regions/strips, explicit prime estimates proved "without RH" from finite zero-free regions, unconditional positive proportion of critical-line zeros, or rigorous numerical verification of zeros up to a finite height T_0).
+6. "MENTION_ONLY": Paper's own proved theorems do NOT assume unproved RH, GRH, or ERH:
+   - All theorems proved in the paper are unconditional, and RH/GRH/Siegel zeros are mentioned only in historical background, motivation, comparison with prior conditional bounds, remarks, or notes that an earlier draft used GRH.
+   - "Riemann hypothesis" refers to the proved Riemann hypothesis / Weil conjectures for curves or varieties over finite fields F_q, OR is a physics/analogy/random-matrix heuristic/survey essay with no conditional theorem proved.
 
-function inferDefaultTopic(cat: string, title: string, abstract: string): ClassifiedCorpusEntry["topicBucket"] {
+ADDITIONAL FIELDS (return ONLY a single valid JSON object with these exact keys):
+- "conjectureType": "RH" | "GRH_DIRICHLET" | "BEYOND_DIRICHLET" | "UNCLEAR" | "DENSITY_BOUND" | "MENTION_ONLY"
+- "polarity": "ASSUMES_TRUE" | "ASSUMES_FALSE" ("ASSUMES_FALSE" ONLY when a theorem assumes RH/GRH is FALSE or exceptional Siegel zeros exist infinitely often; if a paper bypasses Siegel zeros to prove an unconditional theorem, use "MENTION_ONLY" + "ASSUMES_TRUE")
+- "hasUnconditionalFallback": boolean (true if the paper also proves a weaker/slower unconditional bound OR an unconditional proof/algorithm for the same qualitative problem is established; always true for "DENSITY_BOUND" and "MENTION_ONLY")
+- "topicBucket": "Primes & Number Theory" | "Algorithms & Complexity" | "Cryptography & Security" | "Algebra, Knots & Quantum"
+- "shortLabel": "3 to 5 plain words naming the paper's topic"
+- "theoremLabel": "Theorem/Corollary number if stated in excerpts/abstract (e.g. 'Theorem 1.2'), else 'Main Result'"
+- "plainSummary": "One plain-English sentence (12-24 words) explaining what the paper proves or studies without unexplained specialist acronyms."
+- "plainImpactUpgrade": "One plain-English sentence (12-22 words) explaining what the checked RH + Dirichlet GRH proof changes (or why it leaves this paper open or unchanged)."
+- "plainFallbackNote": "One plain-English sentence stating what unconditional bound or algorithm already exists, or that no unconditional substitute is proved here."
+- "extractedQuote": "Verbatim 1-sentence quote copied from the excerpts or abstract supporting your classification."
+- "quoteLocator": "Exact section/page/line locator from the excerpts (e.g. 'main.tex :: §Introduction :: L48' or 'PDF Page 2'), or 'Abstract' if abstract-only."`;
+
+function inferDefaultTopic(cat: string, title: string, abstract: string): TopicBucket {
   const txt = `${title} ${abstract}`.toLowerCase();
-  if (cat === "cs.CR" || /crypt|isogen|lattice|signature|post-quantum|encryption|diffie-hellman|rsa/.test(txt)) {
+  if (
+    cat === "cs.CR" ||
+    /crypt|isogen|lattice|signature|post-quantum|encryption|diffie-hellman|rsa/.test(txt)
+  ) {
     return "Cryptography & Security";
   }
-  if (cat.startsWith("cs.") || /algorithm|polynomial-time|complexity|primality|deterministic|subexponential/.test(txt)) {
+  if (
+    cat.startsWith("cs.") ||
+    /algorithm|polynomial-time|complexity|primality|deterministic|subexponential|turing/.test(txt)
+  ) {
     return "Algorithms & Complexity";
   }
   if (
@@ -107,18 +155,43 @@ function inferDefaultTopic(cat: string, title: string, abstract: string): Classi
     cat === "math.GR" ||
     cat === "quant-ph" ||
     cat === "math.AT" ||
-    /knot|quantum|graph|combinator|manifold|variety|group/.test(txt)
+    /knot|manifold|quantum|graph|combinator|variety|schubert|curve/.test(txt)
   ) {
     return "Algebra, Knots & Quantum";
   }
   return "Primes & Number Theory";
 }
 
-function formatMonthYear(iso: string): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  if (Number.isNaN(d.getTime())) return iso.slice(0, 4);
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return `${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+function formatYearLabel(year: number, publishedDate?: string): string {
+  if (publishedDate && /^\d{4}-\d{2}/.test(publishedDate)) {
+    const d = new Date(`${publishedDate.slice(0, 10)}T00:00:00Z`);
+    if (!Number.isNaN(d.getTime())) {
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      return `${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+    }
+  }
+  return String(year);
+}
+
+function priorityScore(w: RawPoolWork): number {
+  if (w.importanceTier === "TOP_100") return 1_000_000 + (w.citedByCount ?? 0);
+  if (w.inAttempt1Corpus) return 900_000 + (w.citedByCount ?? 0);
+  if (w.isNamedLandmark) return 850_000 + (w.citedByCount ?? 0);
+  if (w.importanceTier === "TOP_500") return 500_000 + (w.citedByCount ?? 0);
+  return w.citedByCount ?? 0;
 }
 
 async function main() {
@@ -127,197 +200,369 @@ async function main() {
     throw new Error("Missing WANDB_API_KEY / ~/.netrc credentials for Forge Serverless Inference.");
   }
   const activeCreds = creds;
-  const rawPath = path.resolve(import.meta.dirname, "../out/arxiv-raw.json");
-  const outPath = path.resolve(import.meta.dirname, "../out/corpus-classified.json");
-  const rawList: RawArxivEntry[] = JSON.parse(fs.readFileSync(rawPath, "utf8")).filter(
-    (x: RawArxivEntry) => !LANDMARK_ARXIV_IDS.has(x.arxivId),
-  );
 
-  // Resume support if partially classified
-  const existingMap = new Map<string, ClassifiedCorpusEntry>();
+  const rawPath = path.resolve(import.meta.dirname, "../out/pool-raw.json");
+  const outPath = path.resolve(import.meta.dirname, "../out/pool-classified.json");
+  const rawPool: RawPoolWork[] = JSON.parse(fs.readFileSync(rawPath, "utf8"));
+
+  const existingMap = new Map<string, ClassifiedPoolRecord>();
   if (fs.existsSync(outPath)) {
-    const prev: ClassifiedCorpusEntry[] = JSON.parse(fs.readFileSync(outPath, "utf8"));
-    for (const item of prev) existingMap.set(item.arxivId, item);
+    const prev: ClassifiedPoolRecord[] = JSON.parse(fs.readFileSync(outPath, "utf8"));
+    for (const item of prev) {
+      if (!item.parseError) existingMap.set(item.poolId, item);
+    }
   }
+
+  const todo = rawPool
+    .filter((w) => !existingMap.has(w.poolId))
+    .sort((a, b) => priorityScore(b) - priorityScore(a));
 
   const tracer = createTraceRunner({ spanProcessor: "batch" });
   const tracingActive = await tracer.enabled();
+
   console.log(
-    `Classifying ${rawList.length} arXiv papers via ${creds.provider} (${creds.model}), Agent Lens=${tracingActive} (${tracer.project})...`,
+    `Auditing pool: total=${rawPool.length}, already_done=${existingMap.size}, remaining=${todo.length} | model=${activeCreds.model} | AgentLens=${tracingActive} (${tracer.project})`,
   );
 
-  const results: ClassifiedCorpusEntry[] = [...existingMap.values()];
-  const todo = rawList.filter((x) => !existingMap.has(x.arxivId));
-  let rejected = 0;
-  let completed = 0;
+  if (todo.length === 0) {
+    console.log("All 3,800 pooled works already classified.");
+    return;
+  }
 
-  const CONCURRENCY = 8;
-  let cursor = 0;
+  function saveCheckpoint() {
+    const ordered = rawPool
+      .map((w) => existingMap.get(w.poolId))
+      .filter((x): x is ClassifiedPoolRecord => Boolean(x));
+    const tmp = `${outPath}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(ordered, null, 2));
+    fs.renameSync(tmp, outPath);
+  }
 
-  async function worker() {
-    while (cursor < todo.length) {
-      const idx = cursor++;
-      const entry = todo[idx];
-      const convId = `ts-corpus-${entry.arxivId.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
-      const userPrompt = `arXiv ID: ${entry.arxivId}
-Primary category: ${entry.primaryCategory}
-Published: ${entry.published}
-Authors: ${entry.authors}
-Title: ${entry.title}
-Abstract: ${entry.abstract}`;
+  // Dual-lane text retrieval feeding an async bounded classification buffer
+  type FetchedItem = {
+    work: RawPoolWork;
+    evidenceTier: EvidenceTier;
+    noFulltext: boolean;
+    fulltextFormat: string;
+    windows: Array<{ locator: string; kind: string; excerpt: string }>;
+    bibMatches: string[];
+  };
 
-      try {
-        await tracer.run(
-          {
-            conversationId: convId,
-            userMessage: `Classify conditional RH/GRH/ERH theorem dependency for arXiv:${entry.arxivId} (${entry.title})`,
-            agentVersion: "auditor-v2-corpus",
-            model: activeCreds.model,
-            attributes: {
-              "paper.arxiv_id": entry.arxivId,
-              "paper.category": entry.primaryCategory,
-              "paper.year": entry.year,
-            },
-          },
-          async (trace) => {
-            const regexScan = await trace.tool(
-              "scan_abstract_markers",
-              { arxivId: entry.arxivId, category: entry.primaryCategory },
-              (r) => `erh=${r.mentionsErh}, grh=${r.mentionsGrh}, siegel=${r.mentionsSiegel}`,
-              () => {
-                const text = `${entry.title} ${entry.abstract}`;
-                return {
-                  mentionsErh: /extended riemann|\berh\b|dedekind zeta|artin l-function|hecke l-function/i.test(text),
-                  mentionsGrh: /generalized riemann|generalised riemann|\bgrh\b|dirichlet l-function/i.test(text),
-                  mentionsSiegel: /siegel zero|landau-siegel|deuring-heilbronn|riemann hypothesis is false/i.test(text),
-                  mentionsUnconditional: /unconditional/i.test(text),
-                };
-              },
-            );
+  const readyBuffer: FetchedItem[] = [];
+  let fetchersDone = false;
+  const MAX_BUFFER = 80;
 
-            const chat = await trace.llm(
-              activeCreds.model,
-              [{ role: "user", parts: [{ type: "text", content: userPrompt }] }],
-              [SYSTEM_PROMPT],
-              () =>
-                chatCompletion(
-                  activeCreds,
-                  [
-                    { role: "system", content: SYSTEM_PROMPT },
-                    {
-                      role: "user",
-                      content: `${userPrompt}\n\nDeterministic marker hints: ${JSON.stringify(regexScan)}`,
-                    },
-                  ],
-                  { temperature: 0.05, maxTokens: 650 },
-                ),
-              (r) => ({
-                output: r.content,
-                inputTokens: r.inputTokens,
-                outputTokens: r.outputTokens,
-                responseModel: r.model,
-                summary: `${r.latencyMs}ms`,
-              }),
-            );
+  const arxivWorks = todo.filter((w) => Boolean(w.arxivId));
+  const nonArxivWorks = todo.filter((w) => !w.arxivId);
 
-            const parsed = parseJsonObject(chat.content);
-            const relevant = Boolean(parsed.relevant);
-            trace.setAttributes({
-              "audit.relevant": relevant,
-              "audit.conjecture_type": String(parsed.conjectureType ?? "UNKNOWN"),
-              "audit.polarity": String(parsed.polarity ?? "ASSUMES_TRUE"),
-            });
-            trace.output(chat.content);
+  let arxivIdx = 0;
+  let nonArxivIdx = 0;
 
-            if (!relevant) {
-              rejected++;
-              return;
-            }
+  async function pushToBuffer(item: FetchedItem) {
+    while (readyBuffer.length >= MAX_BUFFER) {
+      await new Promise((r) => setTimeout(r, 80));
+    }
+    readyBuffer.push(item);
+  }
 
-            const rawConj = String(parsed.conjectureType ?? "RH").toUpperCase();
-            const conjectureType: ClassifiedCorpusEntry["conjectureType"] =
-              rawConj === "GRH" || rawConj === "ERH" || rawConj === "DENSITY_BOUND" ? rawConj : "RH";
-            const polarity: ClassifiedCorpusEntry["polarity"] =
-              parsed.polarity === "ASSUMES_FALSE" ? "ASSUMES_FALSE" : "ASSUMES_TRUE";
-            const alreadyUnconditional =
-              Boolean(parsed.alreadyUnconditional) || conjectureType === "DENSITY_BOUND";
-            const hasUnconditionalFallback =
-              alreadyUnconditional || Boolean(parsed.hasUnconditionalFallback);
+  async function fetchOneWork(work: RawPoolWork): Promise<FetchedItem> {
+    if (!work.arxivId && !work.oaUrl) {
+      return {
+        work,
+        evidenceTier: "abstract_only",
+        noFulltext: true,
+        fulltextFormat: "none",
+        windows: [],
+        bibMatches: [],
+      };
+    }
+    const doc = await fetchPaperFullText({
+      arxivId: work.arxivId,
+      doi: work.doi,
+      oaUrl: work.oaUrl,
+      poolId: work.poolId,
+      saveRawText: false,
+    });
+    const ok = doc.status === "ok" && doc.windows.length > 0;
+    return {
+      work,
+      evidenceTier: ok ? "fulltext" : "abstract_only",
+      noFulltext: !ok,
+      fulltextFormat: doc.format,
+      windows: doc.windows.slice(0, 8),
+      bibMatches: doc.bibliographyMatches.slice(0, 6),
+    };
+  }
 
-            const validBuckets = new Set([
-              "Primes & Number Theory",
-              "Algorithms & Complexity",
-              "Cryptography & Security",
-              "Algebra, Knots & Quantum",
-            ]);
-            const topicBucket = validBuckets.has(String(parsed.topicBucket))
-              ? (parsed.topicBucket as ClassifiedCorpusEntry["topicBucket"])
-              : inferDefaultTopic(entry.primaryCategory, entry.title, entry.abstract);
+  async function arxivFetchWorker() {
+    while (arxivIdx < arxivWorks.length) {
+      const w = arxivWorks[arxivIdx++];
+      const fetched = await fetchOneWork(w);
+      await pushToBuffer(fetched);
+    }
+  }
 
-            const item: ClassifiedCorpusEntry = {
-              arxivId: entry.arxivId,
-              url: entry.url,
-              title: entry.title,
-              authors: entry.authors || "arXiv Authors",
-              year: entry.year,
-              yearLabel: formatMonthYear(entry.published),
-              primaryCategory: entry.primaryCategory,
-              topicBucket,
-              shortLabel: String(parsed.shortLabel || entry.title.slice(0, 38)).trim(),
-              theoremLabel: String(parsed.theoremLabel || "Main Result").trim(),
-              conjectureType: alreadyUnconditional ? "DENSITY_BOUND" : conjectureType,
-              polarity,
-              hasUnconditionalFallback,
-              alreadyUnconditional,
-              plainSummary: String(parsed.plainSummary || entry.abstract.slice(0, 140)).trim(),
-              plainImpactUpgrade: String(
-                parsed.plainImpactUpgrade ||
-                  "Drops its conditional assumption and holds unconditionally once the conjecture is verified.",
-              ).trim(),
-              plainFallbackNote: String(
-                parsed.plainFallbackNote ||
-                  "No unconditional version of this specific bound is stated in the abstract.",
-              ).trim(),
-              extractedQuote: String(parsed.extractedQuote || entry.abstract.split(". ")[0] + ".").trim(),
-              conversationId: convId,
-            };
-            results.push(item);
+  async function nonArxivFetchWorker() {
+    while (nonArxivIdx < nonArxivWorks.length) {
+      const w = nonArxivWorks[nonArxivIdx++];
+      const fetched = await fetchOneWork(w);
+      await pushToBuffer(fetched);
+    }
+  }
+
+  let completedNew = 0;
+  let parseFallbacks = 0;
+  const startMs = Date.now();
+
+  async function classifyOne(item: FetchedItem) {
+    const { work, evidenceTier, noFulltext, fulltextFormat, windows, bibMatches } = item;
+    const refId = work.arxivId
+      ? `arXiv:${work.arxivId}`
+      : work.doi
+        ? `doi:${work.doi}`
+        : work.poolId;
+    const convId = `ts-pool-${work.poolId.replace(/[^a-zA-Z0-9_-]/g, "-").slice(0, 84)}`;
+
+    await tracer.run(
+      {
+        conversationId: convId,
+        userMessage: `Audit pool work ${refId} (${work.title}) [evidence=${evidenceTier}]`,
+        agentVersion: "auditor-v3-pool",
+        model: activeCreds.model,
+        attributes: {
+          "paper.pool_id": work.poolId,
+          "paper.ref": refId,
+          "paper.year": work.year,
+          "paper.importance_tier": work.importanceTier,
+          "paper.cited_by_count": work.citedByCount ?? 0,
+          "paper.evidence_tier": evidenceTier,
+        },
+      },
+      async (trace) => {
+        const signals = await trace.tool(
+          "scan_pool_scope_signals",
+          { poolId: work.poolId, evidenceTier },
+          (s) =>
+            `dirichlet=${String(s.mentionsDirichletExplicit)} dedekindHecke=${String(
+              s.mentionsDedekindOrHecke || s.mentionsChebotarevOrArtin,
+            )}`,
+          () => {
+            const combined =
+              evidenceTier === "fulltext"
+                ? `${work.title}\n${work.abstractText}\n${windows
+                    .map((w) => `[${w.locator}] ${w.excerpt}`)
+                    .join("\n")}`
+                : `${work.title}\n${work.abstractText}`;
+            return { ...scanTextScopeSignals(combined, bibMatches) };
           },
         );
+
+        const sections: string[] = [
+          `Paper Ref: ${refId}`,
+          `Title: ${work.title}`,
+          `Authors: ${work.authors} (${work.year})`,
+          `Primary Category: ${work.primaryCategory}`,
+          `Citations: ${work.citedByCount ?? 0} (${work.importanceTier})`,
+          `Harvest Sources: ${work.foundBySources.join(", ")}`,
+          `Evidence Tier: ${evidenceTier}`,
+          "",
+          "Abstract:",
+          work.abstractText || "(no abstract in metadata)",
+          "",
+          `Lexical Signals: ${JSON.stringify(signals)}`,
+        ];
+        if (evidenceTier === "fulltext") {
+          sections.push(
+            "",
+            `Located Full-Text Excerpts (${fulltextFormat}):`,
+            windows.map((w) => `[${w.locator} | ${w.kind}]\n${w.excerpt}`).join("\n\n"),
+          );
+          if (bibMatches.length > 0) {
+            sections.push("", "Bibliography Anchor Matches:", bibMatches.join("\n"));
+          }
+        } else {
+          sections.push(
+            "",
+            "NOTE: Full text could not be retrieved (abstract_only). If the abstract writes 'GRH' or 'ERH' without enough mathematical context to tell Dirichlet L(s, chi) from number-field / automorphic L-functions, use 'UNCLEAR'.",
+          );
+        }
+        sections.push("", "Return ONLY the JSON object with the exact requested keys.");
+        const userPrompt = sections.join("\n");
+
+        const llmRes = await trace.llm(
+          activeCreds.model,
+          [{ role: "user", parts: [{ type: "text", content: userPrompt }] }],
+          [POOL_SYSTEM_PROMPT],
+          () =>
+            chatCompletion(
+              activeCreds,
+              [
+                { role: "system", content: POOL_SYSTEM_PROMPT },
+                { role: "user", content: userPrompt },
+              ],
+              { temperature: 0.08, maxTokens: 1500 },
+            ),
+          (r) => ({
+            output: r.content,
+            inputTokens: r.inputTokens,
+            outputTokens: r.outputTokens,
+            responseModel: r.model,
+            summary: `${evidenceTier} (${r.outputTokens} tok, ${r.latencyMs}ms)`,
+          }),
+        );
+
+        const parsed = parseJsonObjectStrict(llmRes.content);
+        const rawConj = parsed ? String(parsed.conjectureType ?? "").trim().toUpperCase() : "";
+        const isParseErr = !parsed || !VALID_CONJECTURES.has(rawConj as ConjectureType);
+        if (isParseErr) parseFallbacks++;
+
+        const conjectureType: ConjectureType = VALID_CONJECTURES.has(rawConj as ConjectureType)
+          ? (rawConj as ConjectureType)
+          : signals.mentionsGenericGrh || signals.mentionsErh
+            ? "UNCLEAR"
+            : "MENTION_ONLY";
+
+        const polarity: Polarity =
+          parsed?.polarity === "ASSUMES_FALSE" ? "ASSUMES_FALSE" : "ASSUMES_TRUE";
+        const alreadyUnconditional =
+          conjectureType === "DENSITY_BOUND" || conjectureType === "MENTION_ONLY";
+        const hasUnconditionalFallback =
+          alreadyUnconditional || Boolean(parsed?.hasUnconditionalFallback);
+
+        const topicBucket: TopicBucket = VALID_BUCKETS.has(parsed?.topicBucket as TopicBucket)
+          ? (parsed!.topicBucket as TopicBucket)
+          : inferDefaultTopic(work.primaryCategory, work.title, work.abstractText);
+
+        const defaultQuote =
+          windows[0]?.excerpt.slice(0, 260) ||
+          work.abstractText.slice(0, 260) ||
+          work.title;
+        const defaultLoc =
+          evidenceTier === "fulltext" ? (windows[0]?.locator ?? fulltextFormat) : "Abstract";
+
+        const rec: ClassifiedPoolRecord = {
+          poolId: work.poolId,
+          workKey: work.poolId,
+          arxivId: work.arxivId,
+          doi: work.doi,
+          openalexId: work.openalexId,
+          oaUrl: work.oaUrl,
+          url: work.url,
+          title: work.title,
+          authors: work.authors,
+          year: work.year,
+          yearLabel: formatYearLabel(work.year, work.publishedDate),
+          primaryCategory: work.primaryCategory,
+          topicBucket,
+          shortLabel:
+            typeof parsed?.shortLabel === "string" && parsed.shortLabel.trim()
+              ? parsed.shortLabel.trim().slice(0, 64)
+              : work.title.split(/\s+/).slice(0, 5).join(" "),
+          theoremLabel:
+            typeof parsed?.theoremLabel === "string" && parsed.theoremLabel.trim()
+              ? parsed.theoremLabel.trim().slice(0, 48)
+              : "Main Result",
+          conjectureType,
+          polarity,
+          hasUnconditionalFallback,
+          alreadyUnconditional,
+          plainSummary:
+            typeof parsed?.plainSummary === "string" && parsed.plainSummary.trim()
+              ? parsed.plainSummary.trim()
+              : work.title,
+          plainImpactUpgrade:
+            typeof parsed?.plainImpactUpgrade === "string" && parsed.plainImpactUpgrade.trim()
+              ? parsed.plainImpactUpgrade.trim()
+              : `Evaluated under checked RH + Dirichlet GRH scope (${conjectureType}).`,
+          plainFallbackNote:
+            typeof parsed?.plainFallbackNote === "string" && parsed.plainFallbackNote.trim()
+              ? parsed.plainFallbackNote.trim()
+              : hasUnconditionalFallback
+                ? "An unconditional bound or algorithm already exists."
+                : "No unconditional substitute stated in retrieved text.",
+          extractedQuote:
+            typeof parsed?.extractedQuote === "string" && parsed.extractedQuote.trim()
+              ? parsed.extractedQuote.trim().slice(0, 320)
+              : defaultQuote,
+          quoteLocator:
+            typeof parsed?.quoteLocator === "string" && parsed.quoteLocator.trim()
+              ? parsed.quoteLocator.trim().slice(0, 120)
+              : defaultLoc,
+          evidenceTier,
+          noFulltext,
+          fulltextFormat,
+          citedByCount: work.citedByCount,
+          importanceRank: work.importanceRank,
+          importanceTier: work.importanceTier,
+          foundBySources: work.foundBySources,
+          inAttempt1Corpus: work.inAttempt1Corpus,
+          isNamedLandmark: work.isNamedLandmark,
+          conversationId: convId,
+          parseError: isParseErr,
+        };
+
+        trace.setAttributes({
+          "audit.conjecture_type": rec.conjectureType,
+          "audit.polarity": rec.polarity,
+          "audit.evidence_tier": rec.evidenceTier,
+          "audit.parse_error": isParseErr,
+        });
+        trace.output(rec.plainImpactUpgrade);
+
+        existingMap.set(work.poolId, rec);
+        completedNew++;
+        if (completedNew % 50 === 0 || completedNew === todo.length) {
+          saveCheckpoint();
+          const spend = readSpendLedger().totalEstimatedUsd;
+          const elapsedMin = ((Date.now() - startMs) / 60000).toFixed(1);
+          console.log(
+            `  [pool-audit] ${existingMap.size}/${rawPool.length} done (+${completedNew} new, parseErr=${parseFallbacks}, buf=${readyBuffer.length}, elapsed=${elapsedMin}m, cumSpend=$${spend.toFixed(4)})`,
+          );
+        }
+      },
+    );
+  }
+
+  async function llmWorker() {
+    while (!fetchersDone || readyBuffer.length > 0) {
+      const next = readyBuffer.shift();
+      if (!next) {
+        await new Promise((r) => setTimeout(r, 80));
+        continue;
+      }
+      try {
+        await classifyOne(next);
       } catch (err) {
-        console.warn(`  [warn] ${entry.arxivId}: ${err instanceof Error ? err.message : String(err)}`);
-      } finally {
-        completed++;
-        if (completed % 20 === 0 || completed === todo.length) {
-          console.log(`  progress: ${completed}/${todo.length} (kept=${results.length}, rejected=${rejected})`);
-          fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
+        console.error(`  [ERROR] ${next.work.poolId}: ${(err as Error).message}`);
+        if (String((err as Error).message).includes("Hard spend cap")) {
+          saveCheckpoint();
+          throw err;
         }
       }
     }
   }
 
-  await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+  const fetchPromise = Promise.all([
+    Promise.all(Array.from({ length: 2 }, () => arxivFetchWorker())),
+    Promise.all(Array.from({ length: 8 }, () => nonArxivFetchWorker())),
+  ]).then(() => {
+    fetchersDone = true;
+  });
+
+  const llmPromise = Promise.all(Array.from({ length: 14 }, () => llmWorker()));
+
+  await Promise.all([fetchPromise, llmPromise]);
+  saveCheckpoint();
   await tracer.flush();
   await tracer.shutdown();
 
-  results.sort((a, b) => b.year - a.year || a.arxivId.localeCompare(b.arxivId));
-  fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
-
-  const byConj: Record<string, number> = {};
-  const byBucket: Record<string, number> = {};
-  let assumesFalse = 0;
-  for (const r of results) {
-    byConj[r.conjectureType] = (byConj[r.conjectureType] ?? 0) + 1;
-    byBucket[r.topicBucket] = (byBucket[r.topicBucket] ?? 0) + 1;
-    if (r.polarity === "ASSUMES_FALSE") assumesFalse++;
-  }
-  console.log(`\nDone! Classified ${results.length} verified arXiv papers (rejected ${rejected} non-conditional).`);
-  console.log("By conjecture:", byConj);
-  console.log("Assumes false / Siegel zeros:", assumesFalse);
-  console.log("By topic bucket:", byBucket);
+  const finalSpend = readSpendLedger().totalEstimatedUsd;
+  console.log(
+    `\nCompleted full-pool audit: ${existingMap.size}/${rawPool.length} works classified -> ${outPath} (parseFallbacks=${parseFallbacks}, totalSpend=$${finalSpend.toFixed(4)})`,
+  );
 }
 
-main().catch((e) => {
-  console.error(e);
+main().catch((err) => {
+  console.error(err);
   process.exit(1);
 });

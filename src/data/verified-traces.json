@@ -1,17 +1,904 @@
 {
-  "generatedAtUtc": "2026-11-20T17:26:07.485Z",
+  "generatedAtUtc": "2026-11-24T11:48:19.074Z",
+  "datasetScope": "handpicked_demo_8",
+  "datasetNote": "Hand-picked 8-paper showcase for UI trace inspection (no label lookup). Primary evaluation is the frozen 60-paper stratified held-out benchmark and 24 named public results in research/benchmark-summary.json.",
   "project": "wandb/theorem-survival",
   "agentName": "theorem-survival-auditor",
   "agentLensProjectUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival",
-  "agentLensTagsViewUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations?tags=rh-grh-erh-conflated,missed-unconditional-fallback,polarity-inversion-miss,crypto-break-hallucination,simplicity-vs-location-blur",
+  "agentLensTagsViewUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations",
   "model": "zai-org/GLM-5.3-Flash",
+  "heldoutBenchmark": {
+    "generatedAtUtc": "2026-11-24T11:46:13.618Z",
+    "heldout60Arms": [
+      {
+        "configId": "v1-neutral-glm",
+        "label": "v1-neutral (GLM-5.3-Flash, abstract)",
+        "arm": "auditor-v1-neutral",
+        "model": "zai-org/GLM-5.3-Flash",
+        "agentVersionTag": "bench-v1-neutral-glm",
+        "denomPerTrial": 60,
+        "nonSettledPerTrial": 50,
+        "meanConjectureExact": 34.67,
+        "meanConjecturePct": 57.8,
+        "meanSettledBinary": 44.67,
+        "meanSettledBinaryPct": 74.4,
+        "meanFalseSettledClaims": 14.67,
+        "meanFalseSettledPct": 29.3,
+        "meanOutcomeMatch": 37.33,
+        "meanOutcomePct": 62.2,
+        "meanTupleExact": 20.67,
+        "totalParseErrorsAcross3Trials": 2,
+        "p50WallMs": 1288,
+        "p95WallMs": 2980,
+        "totalInputTokens": 101481,
+        "totalOutputTokens": 29603,
+        "totalEstimatedUsd": 0.033,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 60,
+            "conjectureExact": 34,
+            "settledBinaryMatch": 44,
+            "falseSettledClaims": 15,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 36,
+            "tupleExactMatch": 22,
+            "parseErrors": 1
+          },
+          {
+            "trial": 2,
+            "n": 60,
+            "conjectureExact": 34,
+            "settledBinaryMatch": 44,
+            "falseSettledClaims": 15,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 38,
+            "tupleExactMatch": 20,
+            "parseErrors": 1
+          },
+          {
+            "trial": 3,
+            "n": 60,
+            "conjectureExact": 36,
+            "settledBinaryMatch": 46,
+            "falseSettledClaims": 14,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 38,
+            "tupleExactMatch": 20,
+            "parseErrors": 0
+          }
+        ]
+      },
+      {
+        "configId": "v1-neutral-kimi",
+        "label": "v1-neutral (Kimi-K2.6, abstract)",
+        "arm": "auditor-v1-neutral",
+        "model": "moonshotai/Kimi-K2.6",
+        "agentVersionTag": "bench-v1-neutral-kimi",
+        "denomPerTrial": 60,
+        "nonSettledPerTrial": 50,
+        "meanConjectureExact": 23.33,
+        "meanConjecturePct": 38.9,
+        "meanSettledBinary": 40,
+        "meanSettledBinaryPct": 66.7,
+        "meanFalseSettledClaims": 20,
+        "meanFalseSettledPct": 40,
+        "meanOutcomeMatch": 29.67,
+        "meanOutcomePct": 49.4,
+        "meanTupleExact": 12,
+        "totalParseErrorsAcross3Trials": 0,
+        "p50WallMs": 1668,
+        "p95WallMs": 11844,
+        "totalInputTokens": 98556,
+        "totalOutputTokens": 25468,
+        "totalEstimatedUsd": 0.1228,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 60,
+            "conjectureExact": 26,
+            "settledBinaryMatch": 42,
+            "falseSettledClaims": 18,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 31,
+            "tupleExactMatch": 13,
+            "parseErrors": 0
+          },
+          {
+            "trial": 2,
+            "n": 60,
+            "conjectureExact": 23,
+            "settledBinaryMatch": 40,
+            "falseSettledClaims": 20,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 29,
+            "tupleExactMatch": 12,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 60,
+            "conjectureExact": 21,
+            "settledBinaryMatch": 38,
+            "falseSettledClaims": 22,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 29,
+            "tupleExactMatch": 11,
+            "parseErrors": 0
+          }
+        ]
+      },
+      {
+        "configId": "v1-rules-glm",
+        "label": "v1-rules (GLM-5.3-Flash, abstract + rules)",
+        "arm": "auditor-v1-rules",
+        "model": "zai-org/GLM-5.3-Flash",
+        "agentVersionTag": "bench-v1-rules-glm",
+        "denomPerTrial": 60,
+        "nonSettledPerTrial": 50,
+        "meanConjectureExact": 50,
+        "meanConjecturePct": 83.3,
+        "meanSettledBinary": 56.67,
+        "meanSettledBinaryPct": 94.4,
+        "meanFalseSettledClaims": 1.67,
+        "meanFalseSettledPct": 3.3,
+        "meanOutcomeMatch": 48.33,
+        "meanOutcomePct": 80.6,
+        "meanTupleExact": 41.67,
+        "totalParseErrorsAcross3Trials": 0,
+        "p50WallMs": 1356,
+        "p95WallMs": 3317,
+        "totalInputTokens": 325761,
+        "totalOutputTokens": 33699,
+        "totalEstimatedUsd": 0.0691,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 60,
+            "conjectureExact": 52,
+            "settledBinaryMatch": 58,
+            "falseSettledClaims": 0,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 50,
+            "tupleExactMatch": 44,
+            "parseErrors": 0
+          },
+          {
+            "trial": 2,
+            "n": 60,
+            "conjectureExact": 49,
+            "settledBinaryMatch": 56,
+            "falseSettledClaims": 3,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 47,
+            "tupleExactMatch": 40,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 60,
+            "conjectureExact": 49,
+            "settledBinaryMatch": 56,
+            "falseSettledClaims": 2,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 48,
+            "tupleExactMatch": 41,
+            "parseErrors": 0
+          }
+        ]
+      },
+      {
+        "configId": "v1-rules-kimi",
+        "label": "v1-rules (Kimi-K2.6, abstract + rules)",
+        "arm": "auditor-v1-rules",
+        "model": "moonshotai/Kimi-K2.6",
+        "agentVersionTag": "bench-v1-rules-kimi",
+        "denomPerTrial": 60,
+        "nonSettledPerTrial": 50,
+        "meanConjectureExact": 48.33,
+        "meanConjecturePct": 80.6,
+        "meanSettledBinary": 56,
+        "meanSettledBinaryPct": 93.3,
+        "meanFalseSettledClaims": 3,
+        "meanFalseSettledPct": 6,
+        "meanOutcomeMatch": 49,
+        "meanOutcomePct": 81.7,
+        "meanTupleExact": 40.33,
+        "totalParseErrorsAcross3Trials": 0,
+        "p50WallMs": 1464,
+        "p95WallMs": 4241,
+        "totalInputTokens": 319416,
+        "totalOutputTokens": 28570,
+        "totalEstimatedUsd": 0.2631,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 60,
+            "conjectureExact": 48,
+            "settledBinaryMatch": 56,
+            "falseSettledClaims": 3,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 47,
+            "tupleExactMatch": 39,
+            "parseErrors": 0
+          },
+          {
+            "trial": 2,
+            "n": 60,
+            "conjectureExact": 49,
+            "settledBinaryMatch": 56,
+            "falseSettledClaims": 3,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 51,
+            "tupleExactMatch": 42,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 60,
+            "conjectureExact": 48,
+            "settledBinaryMatch": 56,
+            "falseSettledClaims": 3,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 49,
+            "tupleExactMatch": 40,
+            "parseErrors": 0
+          }
+        ]
+      },
+      {
+        "configId": "v2-abstract-glm",
+        "label": "v2-abstract (GLM-5.3-Flash + abstract tools)",
+        "arm": "auditor-v2-abstract",
+        "model": "zai-org/GLM-5.3-Flash",
+        "agentVersionTag": "bench-v2-abstract-glm",
+        "denomPerTrial": 60,
+        "nonSettledPerTrial": 50,
+        "meanConjectureExact": 49,
+        "meanConjecturePct": 81.7,
+        "meanSettledBinary": 56.67,
+        "meanSettledBinaryPct": 94.4,
+        "meanFalseSettledClaims": 2,
+        "meanFalseSettledPct": 4,
+        "meanOutcomeMatch": 49.67,
+        "meanOutcomePct": 82.8,
+        "meanTupleExact": 44.67,
+        "totalParseErrorsAcross3Trials": 1,
+        "p50WallMs": 1307,
+        "p95WallMs": 3496,
+        "totalInputTokens": 323961,
+        "totalOutputTokens": 32080,
+        "totalEstimatedUsd": 0.0678,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 60,
+            "conjectureExact": 48,
+            "settledBinaryMatch": 56,
+            "falseSettledClaims": 2,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 49,
+            "tupleExactMatch": 45,
+            "parseErrors": 1
+          },
+          {
+            "trial": 2,
+            "n": 60,
+            "conjectureExact": 50,
+            "settledBinaryMatch": 57,
+            "falseSettledClaims": 2,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 50,
+            "tupleExactMatch": 45,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 60,
+            "conjectureExact": 49,
+            "settledBinaryMatch": 57,
+            "falseSettledClaims": 2,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 50,
+            "tupleExactMatch": 44,
+            "parseErrors": 0
+          }
+        ]
+      },
+      {
+        "configId": "v3-fulltext-glm",
+        "label": "v3-fulltext (GLM-5.3-Flash + full-text tools)",
+        "arm": "auditor-v3-fulltext",
+        "model": "zai-org/GLM-5.3-Flash",
+        "agentVersionTag": "bench-v3-fulltext-glm",
+        "denomPerTrial": 60,
+        "nonSettledPerTrial": 50,
+        "meanConjectureExact": 51.33,
+        "meanConjecturePct": 85.6,
+        "meanSettledBinary": 55,
+        "meanSettledBinaryPct": 91.7,
+        "meanFalseSettledClaims": 4,
+        "meanFalseSettledPct": 8,
+        "meanOutcomeMatch": 51,
+        "meanOutcomePct": 85,
+        "meanTupleExact": 47.33,
+        "totalParseErrorsAcross3Trials": 0,
+        "p50WallMs": 1388,
+        "p95WallMs": 2924,
+        "totalInputTokens": 774519,
+        "totalOutputTokens": 42336,
+        "totalEstimatedUsd": 0.1416,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 60,
+            "conjectureExact": 52,
+            "settledBinaryMatch": 56,
+            "falseSettledClaims": 3,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 52,
+            "tupleExactMatch": 47,
+            "parseErrors": 0
+          },
+          {
+            "trial": 2,
+            "n": 60,
+            "conjectureExact": 51,
+            "settledBinaryMatch": 55,
+            "falseSettledClaims": 4,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 50,
+            "tupleExactMatch": 47,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 60,
+            "conjectureExact": 51,
+            "settledBinaryMatch": 54,
+            "falseSettledClaims": 5,
+            "falseSettledDenom": 50,
+            "outcomeMatch": 51,
+            "tupleExactMatch": 48,
+            "parseErrors": 0
+          }
+        ]
+      }
+    ],
+    "named24Arms": [
+      {
+        "configId": "v1-neutral-glm",
+        "label": "v1-neutral (GLM-5.3-Flash, abstract)",
+        "arm": "auditor-v1-neutral",
+        "model": "zai-org/GLM-5.3-Flash",
+        "agentVersionTag": "bench-v1-neutral-glm",
+        "denomPerTrial": 24,
+        "nonSettledPerTrial": 14,
+        "meanConjectureExact": 17.67,
+        "meanConjecturePct": 73.6,
+        "meanSettledBinary": 17.67,
+        "meanSettledBinaryPct": 73.6,
+        "meanFalseSettledClaims": 6.33,
+        "meanFalseSettledPct": 45.2,
+        "meanOutcomeMatch": 12,
+        "meanOutcomePct": 50,
+        "meanTupleExact": 7,
+        "totalParseErrorsAcross3Trials": 0,
+        "p50WallMs": 1662,
+        "p95WallMs": 5462,
+        "totalInputTokens": 31203,
+        "totalOutputTokens": 12665,
+        "totalEstimatedUsd": 0.0123,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 24,
+            "conjectureExact": 18,
+            "settledBinaryMatch": 18,
+            "falseSettledClaims": 6,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 13,
+            "tupleExactMatch": 7,
+            "parseErrors": 0
+          },
+          {
+            "trial": 2,
+            "n": 24,
+            "conjectureExact": 17,
+            "settledBinaryMatch": 17,
+            "falseSettledClaims": 7,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 12,
+            "tupleExactMatch": 6,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 24,
+            "conjectureExact": 18,
+            "settledBinaryMatch": 18,
+            "falseSettledClaims": 6,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 11,
+            "tupleExactMatch": 8,
+            "parseErrors": 0
+          }
+        ]
+      },
+      {
+        "configId": "v1-neutral-kimi",
+        "label": "v1-neutral (Kimi-K2.6, abstract)",
+        "arm": "auditor-v1-neutral",
+        "model": "moonshotai/Kimi-K2.6",
+        "agentVersionTag": "bench-v1-neutral-kimi",
+        "denomPerTrial": 24,
+        "nonSettledPerTrial": 14,
+        "meanConjectureExact": 16.67,
+        "meanConjecturePct": 69.4,
+        "meanSettledBinary": 17.67,
+        "meanSettledBinaryPct": 73.6,
+        "meanFalseSettledClaims": 6.33,
+        "meanFalseSettledPct": 45.2,
+        "meanOutcomeMatch": 17,
+        "meanOutcomePct": 70.8,
+        "meanTupleExact": 7,
+        "totalParseErrorsAcross3Trials": 0,
+        "p50WallMs": 1586,
+        "p95WallMs": 9678,
+        "totalInputTokens": 30117,
+        "totalOutputTokens": 10647,
+        "totalEstimatedUsd": 0.0447,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 24,
+            "conjectureExact": 17,
+            "settledBinaryMatch": 18,
+            "falseSettledClaims": 6,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 18,
+            "tupleExactMatch": 8,
+            "parseErrors": 0
+          },
+          {
+            "trial": 2,
+            "n": 24,
+            "conjectureExact": 17,
+            "settledBinaryMatch": 18,
+            "falseSettledClaims": 6,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 16,
+            "tupleExactMatch": 7,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 24,
+            "conjectureExact": 16,
+            "settledBinaryMatch": 17,
+            "falseSettledClaims": 7,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 17,
+            "tupleExactMatch": 6,
+            "parseErrors": 0
+          }
+        ]
+      },
+      {
+        "configId": "v1-rules-glm",
+        "label": "v1-rules (GLM-5.3-Flash, abstract + rules)",
+        "arm": "auditor-v1-rules",
+        "model": "zai-org/GLM-5.3-Flash",
+        "agentVersionTag": "bench-v1-rules-glm",
+        "denomPerTrial": 24,
+        "nonSettledPerTrial": 14,
+        "meanConjectureExact": 24,
+        "meanConjecturePct": 100,
+        "meanSettledBinary": 24,
+        "meanSettledBinaryPct": 100,
+        "meanFalseSettledClaims": 0,
+        "meanFalseSettledPct": 0,
+        "meanOutcomeMatch": 22.67,
+        "meanOutcomePct": 94.4,
+        "meanTupleExact": 20.67,
+        "totalParseErrorsAcross3Trials": 0,
+        "p50WallMs": 1737,
+        "p95WallMs": 3572,
+        "totalInputTokens": 120915,
+        "totalOutputTokens": 12818,
+        "totalEstimatedUsd": 0.0258,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 24,
+            "conjectureExact": 24,
+            "settledBinaryMatch": 24,
+            "falseSettledClaims": 0,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 22,
+            "tupleExactMatch": 18,
+            "parseErrors": 0
+          },
+          {
+            "trial": 2,
+            "n": 24,
+            "conjectureExact": 24,
+            "settledBinaryMatch": 24,
+            "falseSettledClaims": 0,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 22,
+            "tupleExactMatch": 22,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 24,
+            "conjectureExact": 24,
+            "settledBinaryMatch": 24,
+            "falseSettledClaims": 0,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 24,
+            "tupleExactMatch": 22,
+            "parseErrors": 0
+          }
+        ]
+      },
+      {
+        "configId": "v1-rules-kimi",
+        "label": "v1-rules (Kimi-K2.6, abstract + rules)",
+        "arm": "auditor-v1-rules",
+        "model": "moonshotai/Kimi-K2.6",
+        "agentVersionTag": "bench-v1-rules-kimi",
+        "denomPerTrial": 24,
+        "nonSettledPerTrial": 14,
+        "meanConjectureExact": 23,
+        "meanConjecturePct": 95.8,
+        "meanSettledBinary": 23,
+        "meanSettledBinaryPct": 95.8,
+        "meanFalseSettledClaims": 1,
+        "meanFalseSettledPct": 7.1,
+        "meanOutcomeMatch": 21.33,
+        "meanOutcomePct": 88.9,
+        "meanTupleExact": 19.67,
+        "totalParseErrorsAcross3Trials": 0,
+        "p50WallMs": 1954,
+        "p95WallMs": 10647,
+        "totalInputTokens": 118461,
+        "totalOutputTokens": 11407,
+        "totalEstimatedUsd": 0.0996,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 24,
+            "conjectureExact": 23,
+            "settledBinaryMatch": 23,
+            "falseSettledClaims": 1,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 21,
+            "tupleExactMatch": 19,
+            "parseErrors": 0
+          },
+          {
+            "trial": 2,
+            "n": 24,
+            "conjectureExact": 23,
+            "settledBinaryMatch": 23,
+            "falseSettledClaims": 1,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 21,
+            "tupleExactMatch": 20,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 24,
+            "conjectureExact": 23,
+            "settledBinaryMatch": 23,
+            "falseSettledClaims": 1,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 22,
+            "tupleExactMatch": 20,
+            "parseErrors": 0
+          }
+        ]
+      },
+      {
+        "configId": "v2-abstract-glm",
+        "label": "v2-abstract (GLM-5.3-Flash + abstract tools)",
+        "arm": "auditor-v2-abstract",
+        "model": "zai-org/GLM-5.3-Flash",
+        "agentVersionTag": "bench-v2-abstract-glm",
+        "denomPerTrial": 24,
+        "nonSettledPerTrial": 14,
+        "meanConjectureExact": 24,
+        "meanConjecturePct": 100,
+        "meanSettledBinary": 24,
+        "meanSettledBinaryPct": 100,
+        "meanFalseSettledClaims": 0,
+        "meanFalseSettledPct": 0,
+        "meanOutcomeMatch": 22,
+        "meanOutcomePct": 91.7,
+        "meanTupleExact": 20.67,
+        "totalParseErrorsAcross3Trials": 0,
+        "p50WallMs": 1246,
+        "p95WallMs": 2271,
+        "totalInputTokens": 120195,
+        "totalOutputTokens": 12279,
+        "totalEstimatedUsd": 0.0254,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 24,
+            "conjectureExact": 24,
+            "settledBinaryMatch": 24,
+            "falseSettledClaims": 0,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 22,
+            "tupleExactMatch": 20,
+            "parseErrors": 0
+          },
+          {
+            "trial": 2,
+            "n": 24,
+            "conjectureExact": 24,
+            "settledBinaryMatch": 24,
+            "falseSettledClaims": 0,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 22,
+            "tupleExactMatch": 21,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 24,
+            "conjectureExact": 24,
+            "settledBinaryMatch": 24,
+            "falseSettledClaims": 0,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 22,
+            "tupleExactMatch": 21,
+            "parseErrors": 0
+          }
+        ]
+      },
+      {
+        "configId": "v3-fulltext-glm",
+        "label": "v3-fulltext (GLM-5.3-Flash + full-text tools)",
+        "arm": "auditor-v3-fulltext",
+        "model": "zai-org/GLM-5.3-Flash",
+        "agentVersionTag": "bench-v3-fulltext-glm",
+        "denomPerTrial": 24,
+        "nonSettledPerTrial": 14,
+        "meanConjectureExact": 24,
+        "meanConjecturePct": 100,
+        "meanSettledBinary": 24,
+        "meanSettledBinaryPct": 100,
+        "meanFalseSettledClaims": 0,
+        "meanFalseSettledPct": 0,
+        "meanOutcomeMatch": 22.67,
+        "meanOutcomePct": 94.4,
+        "meanTupleExact": 20.33,
+        "totalParseErrorsAcross3Trials": 0,
+        "p50WallMs": 1199,
+        "p95WallMs": 2658,
+        "totalInputTokens": 205737,
+        "totalOutputTokens": 13297,
+        "totalEstimatedUsd": 0.0388,
+        "perTrial": [
+          {
+            "trial": 1,
+            "n": 24,
+            "conjectureExact": 24,
+            "settledBinaryMatch": 24,
+            "falseSettledClaims": 0,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 22,
+            "tupleExactMatch": 19,
+            "parseErrors": 0
+          },
+          {
+            "trial": 2,
+            "n": 24,
+            "conjectureExact": 24,
+            "settledBinaryMatch": 24,
+            "falseSettledClaims": 0,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 23,
+            "tupleExactMatch": 21,
+            "parseErrors": 0
+          },
+          {
+            "trial": 3,
+            "n": 24,
+            "conjectureExact": 24,
+            "settledBinaryMatch": 24,
+            "falseSettledClaims": 0,
+            "falseSettledDenom": 14,
+            "outcomeMatch": 23,
+            "tupleExactMatch": 21,
+            "parseErrors": 0
+          }
+        ]
+      }
+    ],
+    "decisionDeltaConjecturePct": null,
+    "decisionDeltaOutcomePct": null
+  },
   "summary": {
     "cases": 8,
-    "v1ExactMatches": 0,
-    "v2ExactMatches": 8,
-    "v1Accuracy": 0,
-    "v2Accuracy": 1,
+    "v1ExactMatches": 2,
+    "v2ExactMatches": 6,
+    "v1Accuracy": 0.25,
+    "v2Accuracy": 0.75,
     "verifiedAgentVersions": [
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 260,
+        "span_count": 260,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 305428,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:28:33.418000",
+        "last_seen": "2026-11-24T11:48:17.126000",
+        "total_cost_usd": null,
+        "agent_version": "auditor-v3-fulltext"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 260,
+        "span_count": 260,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 352721,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:25:34.247000",
+        "last_seen": "2026-11-24T11:48:17.126000",
+        "total_cost_usd": null,
+        "agent_version": "auditor-v1-neutral"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 252,
+        "span_count": 252,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 383585,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:45:39.193000",
+        "last_seen": "2026-11-24T11:46:10.408000",
+        "total_cost_usd": null,
+        "agent_version": "bench-v3-fulltext-glm"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 252,
+        "span_count": 252,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 396244,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:45:04.966000",
+        "last_seen": "2026-11-24T11:45:37.484000",
+        "total_cost_usd": null,
+        "agent_version": "bench-v2-abstract-glm"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 252,
+        "span_count": 252,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 577791,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:43:49.953000",
+        "last_seen": "2026-11-24T11:45:00.256000",
+        "total_cost_usd": null,
+        "agent_version": "bench-v1-rules-kimi"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 252,
+        "span_count": 252,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 413853,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:43:14.047000",
+        "last_seen": "2026-11-24T11:43:47.939000",
+        "total_cost_usd": null,
+        "agent_version": "bench-v1-rules-glm"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 252,
+        "span_count": 252,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 773483,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:41:35.464000",
+        "last_seen": "2026-11-24T11:43:10.953000",
+        "total_cost_usd": null,
+        "agent_version": "bench-v1-neutral-kimi"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 252,
+        "span_count": 252,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 416397,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:40:59.295000",
+        "last_seen": "2026-11-24T11:41:33.533000",
+        "total_cost_usd": null,
+        "agent_version": "bench-v1-neutral-glm"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 252,
+        "span_count": 252,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 350484,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:28:02.410000",
+        "last_seen": "2026-11-24T11:28:29.662000",
+        "total_cost_usd": null,
+        "agent_version": "auditor-v2-abstract"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 252,
+        "span_count": 252,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 346285,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:27:09.256000",
+        "last_seen": "2026-11-24T11:27:50.556000",
+        "total_cost_usd": null,
+        "agent_version": "auditor-v1-rules-kimi"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 252,
+        "span_count": 252,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 286877,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:26:43.566000",
+        "last_seen": "2026-11-24T11:27:06.658000",
+        "total_cost_usd": null,
+        "agent_version": "auditor-v1-rules"
+      },
+      {
+        "project_id": "wandb/theorem-survival",
+        "agent_name": "theorem-survival-auditor",
+        "invocation_count": 252,
+        "span_count": 252,
+        "total_input_tokens": 0,
+        "total_output_tokens": 0,
+        "total_duration_ms": 314802,
+        "error_count": 0,
+        "first_seen": "2026-11-24T11:26:02.641000",
+        "last_seen": "2026-11-24T11:26:41.365000",
+        "total_cost_usd": null,
+        "agent_version": "auditor-v1-neutral-kimi"
+      },
       {
         "project_id": "wandb/theorem-survival",
         "agent_name": "theorem-survival-auditor",
@@ -54,9 +941,7 @@
         "total_cost_usd": null,
         "agent_version": "auditor-v2-guarded"
       }
-    ],
-    "totalVerifiedInvocations": 177,
-    "corpusSize": 160
+    ]
   },
   "cases": [
     {
@@ -65,344 +950,344 @@
       "arxivOrDoi": "arXiv:2610.27830",
       "title": "Primes in short intervals assuming the Riemann hypothesis",
       "presetId": "rh_only",
-      "presetLabel": "RH Only",
-      "trapFocus": "2-hop transitive RH upgrade on Oct 2026 short-interval primes (2610.27830)",
+      "presetLabel": "Classical RH Only",
+      "trapFocus": "2-hop classical RH upgrade on Oct 2026 short-interval primes (2610.27830)",
       "expectedOutcome": "UPGRADED_UNCONDITIONAL",
       "expectedConjecture": "RH",
       "expectedPolarity": "ASSUMES_TRUE",
       "expectedFallback": false,
       "v1": {
-        "conversationId": "ts-v1-case-01-visser-rh-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-01-visser-rh-2026-11-20-17-25-08",
-        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
-        "conjectureType": "Riemann Hypothesis",
-        "polarity": "positive",
-        "hasFallback": false,
-        "exactMatch": false,
-        "authorAlert": "All results in this note are explicitly contingent on RH; if Alpöge's Nov 2026 announcement proves RH, the effective Baker–Harman–Pintz bounds and the prime-in-interval results become unconditional.",
-        "totalTokens": 717,
-        "wallMs": 4249,
-        "spans": [
-          {
-            "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 198,
-            "summary": "arXiv:2610.27830 (math.NT) — Primes in short intervals assuming the Riemann hypothesi"
-          },
-          {
-            "kind": "llm",
-            "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 4048,
-            "summary": "Naive direct JSON classification (212 tok)",
-            "inputTokens": 505,
-            "outputTokens": 212
-          }
-        ]
-      },
-      "v2": {
-        "conversationId": "ts-v2-case-01-visser-rh-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-01-visser-rh-2026-11-20-17-25-08",
-        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
+        "conversationId": "ts-demo2-v1-case-01-visser-rh-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v1-case-01-visser-rh-2026-11-24-11-47-40",
+        "predictedOutcome": "STILL_CONDITIONAL",
         "conjectureType": "RH",
         "polarity": "ASSUMES_TRUE",
         "hasFallback": false,
-        "exactMatch": true,
-        "authorAlert": "Author alert for Matt Visser (uploaded 31 days ago, Hop 2 via 1708.04122): Theorems 1-3 upgrade to unconditional, making Baker-Harman-Pintz explicitly effective at x >= 3.5e90.",
-        "totalTokens": 679,
-        "wallMs": 1849,
+        "exactMatch": false,
+        "authorAlert": "The paper's results are explicitly conditional on RH; with RH confirmed true, the effective bounds (x ≥ 3.5×10^90, primes in [x, x+x^{1/2+1/m}]) become valid theorems as stated. No unconditional fallback is offered, so the results remain conditional in form but are now fully justified.",
+        "totalTokens": 796,
+        "wallMs": 4823,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 192,
-            "summary": "arXiv:2610.27830 (math.NT) — Primes in short intervals assuming the Riemann hypothesi"
+            "name": "resolve_paper_metadata",
+            "durationMs": 2712,
+            "summary": "2610.27830 — Primes in short intervals assuming the Riemann hypothesi"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 2109,
+            "summary": "auditor-v1-neutral (187 tok, 2108ms)",
+            "inputTokens": 609,
+            "outputTokens": 187
+          }
+        ]
+      },
+      "v2": {
+        "conversationId": "ts-demo2-v3-case-01-visser-rh-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v3-case-01-visser-rh-2026-11-24-11-47-40",
+        "predictedOutcome": "BOUND_TIGHTENED",
+        "conjectureType": "RH",
+        "polarity": "ASSUMES_TRUE",
+        "hasFallback": true,
+        "exactMatch": false,
+        "authorAlert": "All three theorems are conditional only on the classical Riemann Hypothesis for zeta(s), via the Carneiro--Milinovich--Soundararajan RH-conditional prime-gap bound; no Dirichlet or higher L-functions are involved. The underlying Baker--Harman--Pintz result is already unconditional (just ineffective in its threshold), so verifying RH would only make these explicit bounds unconditional, not establish anything new qualitatively.",
+        "totalTokens": 6739,
+        "wallMs": 5427,
+        "spans": [
+          {
+            "kind": "tool",
+            "name": "resolve_paper_metadata",
+            "durationMs": 2690,
+            "summary": "2610.27830 — Primes in short intervals assuming the Riemann hypothesi"
           },
           {
             "kind": "tool",
-            "name": "scan_conditional_clauses",
-            "durationMs": 0,
-            "summary": "RH · fallback=false"
+            "name": "fetch_fulltext_windows",
+            "durationMs": 350,
+            "summary": "status=ok fmt=arxiv_tex windows=10 bib=0"
           },
           {
             "kind": "tool",
-            "name": "traverse_citation_hops",
+            "name": "scan_fulltext_scope_signals",
             "durationMs": 1,
-            "summary": "hop=2 via P03 -> P04"
+            "summary": "dirichlet=false dedekindHecke=false uncond=false"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 2367,
+            "summary": "auditor-v3-fulltext (197 tok, 2366ms)",
+            "inputTokens": 6542,
+            "outputTokens": 197
           },
           {
             "kind": "tool",
             "name": "evaluate_world_state_diff",
             "durationMs": 1,
-            "summary": "UPGRADED_UNCONDITIONAL (Upgraded: New Theorem)"
-          },
-          {
-            "kind": "llm",
-            "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 1639,
-            "summary": "Synthesized grounded verdict (14 tok)",
-            "inputTokens": 665,
-            "outputTokens": 14
+            "summary": "BOUND_TIGHTENED (Gets Faster / Tighter)"
           }
         ]
       }
     },
     {
-      "caseId": "case-02-sqisign-rh-only",
+      "caseId": "case-02-sqisign-beyond-dirichlet",
       "theoremId": "P12",
       "arxivOrDoi": "arXiv:2111.01481",
       "title": "The supersingular isogeny path and endomorphism ring problems are equivalent",
-      "presetId": "rh_only",
-      "presetLabel": "RH Only",
-      "trapFocus": "rh-grh-erh-conflated & crypto-break-hallucination: RH alone does NOT unlock SQIsign (needs GRH)",
+      "presetId": "checked_nov24",
+      "presetLabel": "Checked Scope (RH + Dirichlet GRH)",
+      "trapFocus": "Abstract says 'Assuming GRH', but §3 invokes Lagarias-Odlyzko effective Chebotarev (BEYOND_DIRICHLET, still open)",
       "expectedOutcome": "STILL_CONDITIONAL",
-      "expectedConjecture": "GRH",
+      "expectedConjecture": "BEYOND_DIRICHLET",
       "expectedPolarity": "ASSUMES_TRUE",
       "expectedFallback": false,
       "v1": {
-        "conversationId": "ts-v1-case-02-sqisign-rh-only-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-02-sqisign-rh-only-2026-11-20-17-25-08",
-        "predictedOutcome": "STILL_CONDITIONAL",
-        "conjectureType": "GRH",
-        "polarity": "conditional",
+        "conversationId": "ts-demo2-v1-case-02-sqisign-beyond-dirichlet-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v1-case-02-sqisign-beyond-dirichlet-2026-11-24-11-47-40",
+        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
+        "conjectureType": "GRH_DIRICHLET",
+        "polarity": "ASSUMES_TRUE",
         "hasFallback": false,
         "exactMatch": false,
-        "authorAlert": "The equivalence theorem is conditional on GRH, which remains open in the world state; the result stays conditional. No remediation beyond noting the dependence.",
-        "totalTokens": 541,
-        "wallMs": 1210,
+        "authorAlert": "The paper's main equivalence theorem is conditional on GRH, which is TRUE in this world-state, so the polynomial-time equivalence holds unconditionally here. The cryptographic hardness implications should be stated as unconditional in this scenario.",
+        "totalTokens": 743,
+        "wallMs": 8671,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 175,
-            "summary": "arXiv:2111.01481 (math.NT) — The supersingular isogeny path and endomorphism ring pro"
+            "name": "resolve_paper_metadata",
+            "durationMs": 7463,
+            "summary": "2111.01481 — The supersingular isogeny path and endomorphism ring pro"
           },
           {
             "kind": "llm",
             "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 1033,
-            "summary": "Naive direct JSON classification (149 tok)",
-            "inputTokens": 392,
-            "outputTokens": 149
+            "durationMs": 1206,
+            "summary": "auditor-v1-neutral (249 tok, 1205ms)",
+            "inputTokens": 494,
+            "outputTokens": 249
           }
         ]
       },
       "v2": {
-        "conversationId": "ts-v2-case-02-sqisign-rh-only-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-02-sqisign-rh-only-2026-11-20-17-25-08",
+        "conversationId": "ts-demo2-v3-case-02-sqisign-beyond-dirichlet-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v3-case-02-sqisign-beyond-dirichlet-2026-11-24-11-47-40",
         "predictedOutcome": "STILL_CONDITIONAL",
-        "conjectureType": "GRH",
+        "conjectureType": "BEYOND_DIRICHLET",
         "polarity": "ASSUMES_TRUE",
         "hasFallback": false,
         "exactMatch": true,
-        "authorAlert": "Wesolowski's equivalence theorem is conditional on GRH for Dirichlet L-functions, not classical RH; RH=TRUE in this world-state does not discharge the assumption since quaternion ideal norm representation needs quadratic character L-functions. Proving GRH would strengthen, not break, SQIsign's post-quantum security reductions, so the correct badge remains 'Waiting on GRH' with no unconditional fallback available.",
-        "totalTokens": 795,
-        "wallMs": 1756,
+        "authorAlert": "The paper's GRH assumption is used via the effective Chebotarev density theorem over number fields (prime sampling in ideal classes of quaternion orders), not merely Dirichlet L-functions over Z/qZ, so it falls under the beyond-Dirichlet category. No unconditional polynomial-time equivalence of the isogeny path and endomorphism ring problems is known, so the conditional result stands alone.",
+        "totalTokens": 5003,
+        "wallMs": 8423,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 172,
-            "summary": "arXiv:2111.01481 (math.NT) — The supersingular isogeny path and endomorphism ring pro"
+            "name": "resolve_paper_metadata",
+            "durationMs": 7467,
+            "summary": "2111.01481 — The supersingular isogeny path and endomorphism ring pro"
           },
           {
             "kind": "tool",
-            "name": "scan_conditional_clauses",
-            "durationMs": 0,
-            "summary": "GRH · fallback=false"
-          },
-          {
-            "kind": "tool",
-            "name": "traverse_citation_hops",
+            "name": "fetch_fulltext_windows",
             "durationMs": 1,
-            "summary": "hop=2 via P13 -> P12"
+            "summary": "status=ok fmt=arxiv_tex windows=10 bib=3"
+          },
+          {
+            "kind": "tool",
+            "name": "scan_fulltext_scope_signals",
+            "durationMs": 1,
+            "summary": "dirichlet=false dedekindHecke=true uncond=false"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 951,
+            "summary": "auditor-v3-fulltext (189 tok, 951ms)",
+            "inputTokens": 4814,
+            "outputTokens": 189
           },
           {
             "kind": "tool",
             "name": "evaluate_world_state_diff",
             "durationMs": 0,
-            "summary": "STILL_CONDITIONAL (Waiting on GRH)"
-          },
-          {
-            "kind": "llm",
-            "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 1581,
-            "summary": "Synthesized grounded verdict (135 tok)",
-            "inputTokens": 660,
-            "outputTokens": 135
+            "summary": "STILL_CONDITIONAL (Still Needs Number-Field ERH)"
           }
         ]
       }
     },
     {
-      "caseId": "case-03-kuperberg-fallback",
+      "caseId": "case-03-kuperberg-chebotarev",
       "theoremId": "P09",
       "arxivOrDoi": "arXiv:1112.0845",
       "title": "Knottedness is in NP, modulo GRH",
-      "presetId": "alpoge_rh_grh",
-      "presetLabel": "Alpöge Claim (RH + GRH)",
-      "trapFocus": "missed-unconditional-fallback: Lackenby (1604.03778) already proved Knottedness in NP unconditionally",
-      "expectedOutcome": "BOUND_TIGHTENED",
-      "expectedConjecture": "GRH",
+      "presetId": "checked_nov24",
+      "presetLabel": "Checked Scope (RH + Dirichlet GRH)",
+      "trapFocus": "Abstract says 'Assuming GRH', but proof invokes Koiran/Chebotarev (BEYOND_DIRICHLET) and Lackenby already proved NP unconditionally",
+      "expectedOutcome": "STILL_CONDITIONAL",
+      "expectedConjecture": "BEYOND_DIRICHLET",
       "expectedPolarity": "ASSUMES_TRUE",
       "expectedFallback": true,
       "v1": {
-        "conversationId": "ts-v1-case-03-kuperberg-fallback-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-03-kuperberg-fallback-2026-11-20-17-25-08",
+        "conversationId": "ts-demo2-v1-case-03-kuperberg-chebotarev-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v1-case-03-kuperberg-chebotarev-2026-11-24-11-47-40",
         "predictedOutcome": "UPGRADED_UNCONDITIONAL",
-        "conjectureType": "GRH",
-        "polarity": "positive",
+        "conjectureType": "GRH_DIRICHLET",
+        "polarity": "ASSUMES_TRUE",
         "hasFallback": false,
         "exactMatch": false,
-        "authorAlert": "GRH is now proven (RH proved per Alpöge 2026), so the NP membership of knottedness becomes unconditional.",
-        "totalTokens": 542,
-        "wallMs": 936,
+        "authorAlert": "With GRH true in the world state, the result 'knottedness is in NP modulo GRH' becomes unconditional: knottedness is in NP. The paper's main theorem is directly upgraded by the assumed truth of GRH.",
+        "totalTokens": 640,
+        "wallMs": 2739,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 139,
-            "summary": "arXiv:1112.0845 (math.GT) — Knottedness is in NP, modulo GRH"
+            "name": "resolve_paper_metadata",
+            "durationMs": 2043,
+            "summary": "1112.0845 — Knottedness is in NP, modulo GRH"
           },
           {
             "kind": "llm",
             "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 797,
-            "summary": "Naive direct JSON classification (156 tok)",
-            "inputTokens": 386,
-            "outputTokens": 156
+            "durationMs": 695,
+            "summary": "auditor-v1-neutral (150 tok, 695ms)",
+            "inputTokens": 490,
+            "outputTokens": 150
           }
         ]
       },
       "v2": {
-        "conversationId": "ts-v2-case-03-kuperberg-fallback-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-03-kuperberg-fallback-2026-11-20-17-25-08",
-        "predictedOutcome": "BOUND_TIGHTENED",
-        "conjectureType": "GRH",
+        "conversationId": "ts-demo2-v3-case-03-kuperberg-chebotarev-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v3-case-03-kuperberg-chebotarev-2026-11-24-11-47-40",
+        "predictedOutcome": "STILL_CONDITIONAL",
+        "conjectureType": "BEYOND_DIRICHLET",
         "polarity": "ASSUMES_TRUE",
-        "hasFallback": true,
+        "hasFallback": false,
         "exactMatch": true,
-        "authorAlert": "Kuperberg's Theorem 1.1 assumes GRH for the effective Chebotarev step in the SL(2,F_p) witness, and in this world-state GRH is verified TRUE, so the certificate route is unconditional. However, Lackenby (arXiv:1604.03778) already proved knottedness in NP unconditionally via the Thurston norm, so GRH here only sharpens the certificate size, not the complexity class.",
-        "totalTokens": 882,
-        "wallMs": 1177,
+        "authorAlert": "The paper's GRH assumption is used via the effective Chebotarev density theorem (Lagarias–Odlyzko/Weinberger) over number fields to find small primes where an irreducible polynomial has roots — beyond Dirichlet L-functions. A proof of the classical RH plus Dirichlet GRH would not suffice; only a Chebotarev-strength GRH for number fields would establish the polynomial-length certificate.",
+        "totalTokens": 5957,
+        "wallMs": 3485,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 141,
-            "summary": "arXiv:1112.0845 (math.GT) — Knottedness is in NP, modulo GRH"
+            "name": "resolve_paper_metadata",
+            "durationMs": 2034,
+            "summary": "1112.0845 — Knottedness is in NP, modulo GRH"
           },
           {
             "kind": "tool",
-            "name": "scan_conditional_clauses",
-            "durationMs": 0,
-            "summary": "GRH · fallback=true"
+            "name": "fetch_fulltext_windows",
+            "durationMs": 1,
+            "summary": "status=ok fmt=arxiv_tex windows=10 bib=6"
           },
           {
             "kind": "tool",
-            "name": "traverse_citation_hops",
+            "name": "scan_fulltext_scope_signals",
             "durationMs": 0,
-            "summary": "hop=1 via ROOT_GRH -> P09"
+            "summary": "dirichlet=false dedekindHecke=true uncond=false"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 1448,
+            "summary": "auditor-v3-fulltext (199 tok, 1447ms)",
+            "inputTokens": 5758,
+            "outputTokens": 199
           },
           {
             "kind": "tool",
             "name": "evaluate_world_state_diff",
             "durationMs": 0,
-            "summary": "BOUND_TIGHTENED (Upgraded: Bound Tightened)"
-          },
-          {
-            "kind": "llm",
-            "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 1036,
-            "summary": "Synthesized grounded verdict (163 tok)",
-            "inputTokens": 719,
-            "outputTokens": 163
+            "summary": "STILL_CONDITIONAL (Still Needs Number-Field ERH)"
           }
         ]
       }
     },
     {
-      "caseId": "case-04-schubert-erh-gap",
+      "caseId": "case-04-schubert-chebotarev",
       "theoremId": "P11",
       "arxivOrDoi": "arXiv:2412.02064",
       "title": "Vanishing of Schubert Coefficients",
-      "presetId": "alpoge_rh_grh",
-      "presetLabel": "Alpöge Claim (RH + GRH)",
-      "trapFocus": "rh-grh-erh-conflated: SchubertVanishing (2412.02064) traces to Dedekind ERH, still open in RH+GRH preset",
+      "presetId": "checked_nov24",
+      "presetLabel": "Checked Scope (RH + Dirichlet GRH)",
+      "trapFocus": "Pak-Robichaux Schubert vanishing (2412.02064) relies on Koiran's effective Chebotarev step (BEYOND_DIRICHLET, still open)",
       "expectedOutcome": "STILL_CONDITIONAL",
-      "expectedConjecture": "ERH",
+      "expectedConjecture": "BEYOND_DIRICHLET",
       "expectedPolarity": "ASSUMES_TRUE",
       "expectedFallback": false,
       "v1": {
-        "conversationId": "ts-v1-case-04-schubert-erh-gap-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-04-schubert-erh-gap-2026-11-20-17-25-08",
-        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
-        "conjectureType": "complexity_class_membership",
-        "polarity": "conditional_on_GRH",
+        "conversationId": "ts-demo2-v1-case-04-schubert-chebotarev-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v1-case-04-schubert-chebotarev-2026-11-24-11-47-40",
+        "predictedOutcome": "STILL_CONDITIONAL",
+        "conjectureType": "GRH_DIRICHLET",
+        "polarity": "ASSUMES_TRUE",
         "hasFallback": false,
         "exactMatch": false,
-        "authorAlert": "The paper's coAM membership for Schubert vanishing is conditional on GRH; with RH now proved (Alpöge 2026), the result becomes unconditional.",
-        "totalTokens": 684,
-        "wallMs": 31185,
+        "authorAlert": "The paper's main result is conditional on GRH for Dirichlet L-functions; with GRH true, the coAM membership and Σ₂^p conclusion remain valid as stated. No unconditional fallback is given, so the result stays conditional but non-vacuous.",
+        "totalTokens": 760,
+        "wallMs": 2845,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 119,
-            "summary": "arXiv:2412.02064 (math.CO) — Vanishing of Schubert Coefficients"
+            "name": "resolve_paper_metadata",
+            "durationMs": 1837,
+            "summary": "2412.02064 — Vanishing of Schubert Coefficients"
           },
           {
             "kind": "llm",
             "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 31065,
-            "summary": "Naive direct JSON classification (180 tok)",
-            "inputTokens": 504,
-            "outputTokens": 180
+            "durationMs": 1008,
+            "summary": "auditor-v1-neutral (155 tok, 1007ms)",
+            "inputTokens": 605,
+            "outputTokens": 155
           }
         ]
       },
       "v2": {
-        "conversationId": "ts-v2-case-04-schubert-erh-gap-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-04-schubert-erh-gap-2026-11-20-17-25-08",
+        "conversationId": "ts-demo2-v3-case-04-schubert-chebotarev-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v3-case-04-schubert-chebotarev-2026-11-24-11-47-40",
         "predictedOutcome": "STILL_CONDITIONAL",
-        "conjectureType": "ERH",
+        "conjectureType": "BEYOND_DIRICHLET",
         "polarity": "ASSUMES_TRUE",
         "hasFallback": false,
         "exactMatch": true,
-        "authorAlert": "Theorem 1.4's coAM/PH membership for SchubertVanishing rests on the Parametric Hilbert Nullstellensatz, whose analytic input is Dedekind ERH, not the GRH named in the abstract; with GRH now proven but ERH still open, the theorem remains conditional. State the ERH dependence explicitly in the abstract and Section 1.4 so readers do not mistake the Dirichlet GRH result for the needed number-field statement.",
-        "totalTokens": 867,
-        "wallMs": 1190,
+        "authorAlert": "The paper's coAM membership for Schubert vanishing rests on Koiran-style GRH/ERH for primes in intervals with modular conditions, used via the Parametric Hilbert's Nullstellensatz over algebraic extensions — a beyond-Dirichlet use of GRH for polynomial systems, not just Dirichlet L-functions over Z/qZ. Proving GRH for Dirichlet L-functions alone would not remove the assumption here; the result remains conditional on the full GRH/ERH framework.",
+        "totalTokens": 5956,
+        "wallMs": 4290,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 117,
-            "summary": "arXiv:2412.02064 (math.CO) — Vanishing of Schubert Coefficients"
+            "name": "resolve_paper_metadata",
+            "durationMs": 1839,
+            "summary": "2412.02064 — Vanishing of Schubert Coefficients"
           },
           {
             "kind": "tool",
-            "name": "scan_conditional_clauses",
-            "durationMs": 0,
-            "summary": "ERH · fallback=false"
+            "name": "fetch_fulltext_windows",
+            "durationMs": 57,
+            "summary": "status=ok fmt=arxiv_tex windows=10 bib=3"
           },
           {
             "kind": "tool",
-            "name": "traverse_citation_hops",
+            "name": "scan_fulltext_scope_signals",
             "durationMs": 1,
-            "summary": "hop=2 via P14 -> P08 -> P11"
+            "summary": "dirichlet=false dedekindHecke=false uncond=false"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 2391,
+            "summary": "auditor-v3-fulltext (239 tok, 2391ms)",
+            "inputTokens": 5717,
+            "outputTokens": 239
           },
           {
             "kind": "tool",
             "name": "evaluate_world_state_diff",
             "durationMs": 0,
-            "summary": "STILL_CONDITIONAL (Waiting on ERH)"
-          },
-          {
-            "kind": "llm",
-            "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 1072,
-            "summary": "Synthesized grounded verdict (162 tok)",
-            "inputTokens": 705,
-            "outputTokens": 162
+            "summary": "STILL_CONDITIONAL (Still Needs Number-Field ERH)"
           }
         ]
       }
@@ -412,84 +1297,84 @@
       "theoremId": "P16",
       "arxivOrDoi": "arXiv:2112.11412",
       "title": "Siegel zeros, twin primes, Goldbach's conjecture, and primes in short intervals",
-      "presetId": "alpoge_rh_grh",
-      "presetLabel": "Alpöge Claim (RH + GRH)",
-      "trapFocus": "polarity-inversion-miss: GRH=True kills Siegel zeros, making Twin Primes proof route VACUOUS (not proven)",
+      "presetId": "checked_nov24",
+      "presetLabel": "Checked Scope (RH + Dirichlet GRH)",
+      "trapFocus": "Heath-Brown (1983): Dirichlet GRH = True rules out Siegel zeros, making this counterfactual Twin Primes route VACUOUS",
       "expectedOutcome": "VACUOUS_OR_SUPERSEDED",
-      "expectedConjecture": "GRH",
+      "expectedConjecture": "GRH_DIRICHLET",
       "expectedPolarity": "ASSUMES_FALSE",
       "expectedFallback": false,
       "v1": {
-        "conversationId": "ts-v1-case-05-siegel-twins-vacuous-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-05-siegel-twins-vacuous-2026-11-20-17-25-08",
+        "conversationId": "ts-demo2-v1-case-05-siegel-twins-vacuous-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v1-case-05-siegel-twins-vacuous-2026-11-24-11-47-40",
         "predictedOutcome": "VACUOUS_OR_SUPERSEDED",
-        "conjectureType": "Siegel zeros existence",
-        "polarity": "negative (assumes Siegel zeros exist)",
+        "conjectureType": "GRH_DIRICHLET",
+        "polarity": "ASSUMES_FALSE",
         "hasFallback": false,
-        "exactMatch": false,
-        "authorAlert": "The paper's main theorems are conditional on the existence of Siegel zeros, which the Nov 2026 RH proof rules out (RH implies no Siegel zeros). The results remain vacuously true but their intended applications to Goldbach and short intervals are superseded by unconditional advances.",
-        "totalTokens": 645,
-        "wallMs": 15728,
+        "exactMatch": true,
+        "authorAlert": "The paper's main theorems conditionally assume the existence of Siegel zeros, which the world state rules out (siegelZero=false, GRH true). The conditional results become vacuous, though the quantitative improvements over Heath-Brown and Tao–Teräväinen in the fixed-h case would be moot in that world.",
+        "totalTokens": 708,
+        "wallMs": 2696,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 215,
-            "summary": "arXiv:2112.11412 (math.NT) — Siegel zeros, twin primes, Goldbach's conjecture, and pr"
+            "name": "resolve_paper_metadata",
+            "durationMs": 636,
+            "summary": "2112.11412 — Siegel zeros, twin primes, Goldbach's conjecture, and pr"
           },
           {
             "kind": "llm",
             "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 15513,
-            "summary": "Naive direct JSON classification (228 tok)",
-            "inputTokens": 417,
-            "outputTokens": 228
+            "durationMs": 2060,
+            "summary": "auditor-v1-neutral (189 tok, 2060ms)",
+            "inputTokens": 519,
+            "outputTokens": 189
           }
         ]
       },
       "v2": {
-        "conversationId": "ts-v2-case-05-siegel-twins-vacuous-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-05-siegel-twins-vacuous-2026-11-20-17-25-08",
+        "conversationId": "ts-demo2-v3-case-05-siegel-twins-vacuous-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v3-case-05-siegel-twins-vacuous-2026-11-24-11-47-40",
         "predictedOutcome": "VACUOUS_OR_SUPERSEDED",
-        "conjectureType": "GRH",
+        "conjectureType": "GRH_DIRICHLET",
         "polarity": "ASSUMES_FALSE",
         "hasFallback": false,
         "exactMatch": true,
-        "authorAlert": "Corollary 1.1 is a conditional implication whose hypothesis (infinitely many Siegel zeros) is now false in this world-state, since GRH is proven; the corollary is vacuously true and provides no route to Twin Primes. Do not read the Heath-Brown/Matomäki–Merikoski result as evidence toward Twin Primes — the unconditional record remains prime gaps ≤ 246 (Maynard–Tao/Polymath8b), and the paper's GRH-true corollaries on Goldbach and short intervals now carry the weight instead.",
-        "totalTokens": 895,
-        "wallMs": 1858,
+        "authorAlert": "This paper's theorems are conditional on the existence of exceptional real Siegel zeros of Dirichlet L-functions modulo q — the opposite of assuming GRH; it derives consequences of such zeros for twin primes, Goldbach, and primes in short intervals. Verifying GRH would actually destroy the paper's hypotheses, since GRH rules out Siegel zeros; no unconditional version of these asymptotics is proved.",
+        "totalTokens": 3352,
+        "wallMs": 12066,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 202,
-            "summary": "arXiv:2112.11412 (math.NT) — Siegel zeros, twin primes, Goldbach's conjecture, and pr"
+            "name": "resolve_paper_metadata",
+            "durationMs": 634,
+            "summary": "2112.11412 — Siegel zeros, twin primes, Goldbach's conjecture, and pr"
           },
           {
             "kind": "tool",
-            "name": "scan_conditional_clauses",
-            "durationMs": 0,
-            "summary": "~GRH · fallback=false"
+            "name": "fetch_fulltext_windows",
+            "durationMs": 10150,
+            "summary": "status=ok fmt=arxiv_tex windows=4 bib=2"
           },
           {
             "kind": "tool",
-            "name": "traverse_citation_hops",
+            "name": "scan_fulltext_scope_signals",
             "durationMs": 0,
-            "summary": "hop=2 via P15 -> ROOT_GRH -> P16"
-          },
-          {
-            "kind": "tool",
-            "name": "evaluate_world_state_diff",
-            "durationMs": 0,
-            "summary": "VACUOUS_OR_SUPERSEDED (Vacuous (Dead Branch))"
+            "summary": "dirichlet=true dedekindHecke=false uncond=false"
           },
           {
             "kind": "llm",
             "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 1655,
-            "summary": "Synthesized grounded verdict (200 tok)",
-            "inputTokens": 695,
-            "outputTokens": 200
+            "durationMs": 1281,
+            "summary": "auditor-v3-fulltext (231 tok, 1280ms)",
+            "inputTokens": 3121,
+            "outputTokens": 231
+          },
+          {
+            "kind": "tool",
+            "name": "evaluate_world_state_diff",
+            "durationMs": 1,
+            "summary": "VACUOUS_OR_SUPERSEDED (Dead 'What-If' Path)"
           }
         ]
       }
@@ -499,258 +1384,258 @@
       "theoremId": "P06",
       "arxivOrDoi": "arXiv:2608.13637",
       "title": "More than two thirds of the zeros of the Riemann zeta function are simple and on the critical line",
-      "presetId": "rh_only",
-      "presetLabel": "RH Only",
-      "trapFocus": "simplicity-vs-location-blur: RH puts 100% of zeros on Re(s)=1/2 without proving multiplicity 1 (>=67.25% stays live)",
+      "presetId": "checked_nov24",
+      "presetLabel": "Checked Scope (RH + Dirichlet GRH)",
+      "trapFocus": "Simplicity vs location: checked RH places zeros on Re(s)=1/2 without proving multiplicity 1",
       "expectedOutcome": "BOUND_TIGHTENED",
       "expectedConjecture": "DENSITY_BOUND",
       "expectedPolarity": "ASSUMES_TRUE",
       "expectedFallback": true,
       "v1": {
-        "conversationId": "ts-v1-case-06-alpoge-simplicity-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-06-alpoge-simplicity-2026-11-20-17-25-08",
+        "conversationId": "ts-demo2-v1-case-06-alpoge-simplicity-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v1-case-06-alpoge-simplicity-2026-11-24-11-47-40",
         "predictedOutcome": "UPGRADED_UNCONDITIONAL",
-        "conjectureType": "Riemann Hypothesis (formerly conditional on RH via Montgomery 1973)",
-        "polarity": "positive",
+        "conjectureType": "RH",
+        "polarity": "ASSUMES_TRUE",
         "hasFallback": true,
         "exactMatch": false,
-        "authorAlert": "The paper already removes the RH dependence via a rank-trace inequality, so no conditional dependency remains. Note the world-state note about RH being proved does not affect this unconditional result.",
-        "totalTokens": 705,
-        "wallMs": 1734,
+        "authorAlert": "The paper explicitly removes the classical RH assumption from Montgomery's 1973 argument, replacing it with a rank-trace inequality on Weil's Hermitian form, so its results are unconditional regardless of the world state. Under RH=TRUE the conditional version was already valid, so the unconditional upgrade confirms rather than changes the conclusion.",
+        "totalTokens": 753,
+        "wallMs": 1987,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 40,
-            "summary": "arXiv:2608.13637 (math.NT) — More than two thirds of the zeta zeros are simple and on"
+            "name": "resolve_paper_metadata",
+            "durationMs": 933,
+            "summary": "2608.13637 — More than two thirds of the zeta zeros are simple and on"
           },
           {
             "kind": "llm",
             "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 1693,
-            "summary": "Naive direct JSON classification (228 tok)",
-            "inputTokens": 477,
-            "outputTokens": 228
+            "durationMs": 1052,
+            "summary": "auditor-v1-neutral (173 tok, 1052ms)",
+            "inputTokens": 580,
+            "outputTokens": 173
           }
         ]
       },
       "v2": {
-        "conversationId": "ts-v2-case-06-alpoge-simplicity-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-06-alpoge-simplicity-2026-11-20-17-25-08",
-        "predictedOutcome": "BOUND_TIGHTENED",
-        "conjectureType": "DENSITY_BOUND",
+        "conversationId": "ts-demo2-v3-case-06-alpoge-simplicity-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v3-case-06-alpoge-simplicity-2026-11-24-11-47-40",
+        "predictedOutcome": "MENTION_ONLY_UNCHANGED",
+        "conjectureType": "MENTION_ONLY",
         "polarity": "ASSUMES_TRUE",
         "hasFallback": true,
-        "exactMatch": true,
-        "authorAlert": "Your Theorem 1.1 is unconditional, so RH does not obsolete it: RH places 100% of zeros on Re(s)=1/2 but does not prove simplicity, so your >=67.25% simplicity-with-multiplicity bound remains live and sharpens to a purely multiplicity statement. Keep the location and simplicity components clearly separated, since RH alone permits multiple zeros on the critical line.",
-        "totalTokens": 879,
-        "wallMs": 1050,
+        "exactMatch": false,
+        "authorAlert": "This paper proves its main theorems unconditionally — RH is explicitly removed from Montgomery's 1973 argument via a rank-trace inequality, and RH appears only in historical comparisons and conditional extensions. No RH or GRH assumption is needed, so checking RH/GRH-based results does not change the paper's conclusions.",
+        "totalTokens": 6025,
+        "wallMs": 1883,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 37,
-            "summary": "arXiv:2608.13637 (math.NT) — More than two thirds of the zeta zeros are simple and on"
+            "name": "resolve_paper_metadata",
+            "durationMs": 935,
+            "summary": "2608.13637 — More than two thirds of the zeta zeros are simple and on"
           },
           {
             "kind": "tool",
-            "name": "scan_conditional_clauses",
-            "durationMs": 0,
-            "summary": "DENSITY_BOUND · fallback=true"
+            "name": "fetch_fulltext_windows",
+            "durationMs": 64,
+            "summary": "status=ok fmt=arxiv_tex windows=10 bib=4"
           },
           {
             "kind": "tool",
-            "name": "traverse_citation_hops",
+            "name": "scan_fulltext_scope_signals",
             "durationMs": 0,
-            "summary": "hop=2 via P05 -> P06"
+            "summary": "dirichlet=true dedekindHecke=false uncond=true"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 881,
+            "summary": "auditor-v3-fulltext (178 tok, 881ms)",
+            "inputTokens": 5847,
+            "outputTokens": 178
           },
           {
             "kind": "tool",
             "name": "evaluate_world_state_diff",
             "durationMs": 0,
-            "summary": "BOUND_TIGHTENED (Simplicity >= 67.25% Live)"
-          },
-          {
-            "kind": "llm",
-            "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 1012,
-            "summary": "Synthesized grounded verdict (150 tok)",
-            "inputTokens": 729,
-            "outputTokens": 150
+            "summary": "MENTION_ONLY_UNCHANGED (Only Mentions It)"
           }
         ]
       }
     },
     {
-      "caseId": "case-07-artin-erh-gap",
+      "caseId": "case-07-artin-dedekind-open",
       "theoremId": "P14",
       "arxivOrDoi": "doi:10.1515/crll.1967.225.209",
       "title": "On Artin's conjecture (Hooley 1967) & Euclidean rings of algebraic integers (Weinberger 1973)",
-      "presetId": "alpoge_rh_grh",
-      "presetLabel": "Alpöge Claim (RH + GRH)",
-      "trapFocus": "rh-grh-erh-conflated: Hooley Artin primitive roots & Weinberger PID=>Euclidean still wait on Kummer Dedekind ERH",
+      "presetId": "checked_nov24",
+      "presetLabel": "Checked Scope (RH + Dirichlet GRH)",
+      "trapFocus": "Hooley's Artin primitive-root proof needs Dedekind zeta GRH over Kummer fields Q(zeta_q, a^{1/q}) — NOT covered by Dirichlet GRH",
       "expectedOutcome": "STILL_CONDITIONAL",
-      "expectedConjecture": "ERH",
+      "expectedConjecture": "BEYOND_DIRICHLET",
       "expectedPolarity": "ASSUMES_TRUE",
       "expectedFallback": false,
       "v1": {
-        "conversationId": "ts-v1-case-07-artin-erh-gap-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-07-artin-erh-gap-2026-11-20-17-25-08",
-        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
-        "conjectureType": "GRH for Dedekind zeta-functions of Kummer fields Q(zeta_q, a^{1/q})",
-        "polarity": "conditional",
+        "conversationId": "ts-demo2-v1-case-07-artin-dedekind-open-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v1-case-07-artin-dedekind-open-2026-11-24-11-47-40",
+        "predictedOutcome": "STILL_CONDITIONAL",
+        "conjectureType": "BEYOND_DIRICHLET",
+        "polarity": "ASSUMES_TRUE",
         "hasFallback": false,
-        "exactMatch": false,
-        "authorAlert": "Hooley's conditional proof of Artin's conjecture and Weinberger's conditional Euclidean theorem both rest on GRH for Dedekind zeta-functions of Kummer fields, which follows from the announced proof of RH (via GRH). Both results become unconditional.",
-        "totalTokens": 745,
-        "wallMs": 1379,
+        "exactMatch": true,
+        "authorAlert": "Both results rely on GRH for Dedekind zeta-functions, which lies beyond Dirichlet GRH and remains open in the world state. The papers remain conditional; no unconditional upgrade is available.",
+        "totalTokens": 616,
+        "wallMs": 804,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
+            "name": "resolve_paper_metadata",
             "durationMs": 0,
-            "summary": "doi:10.1515/crll.1967.225.209 (math.NT) — On Artin's conjecture (Hooley 1967) & Euclidean rings of"
+            "summary": " — On Artin's conjecture (Hooley 1967) & Euclidean rings of"
           },
           {
             "kind": "llm",
             "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 1379,
-            "summary": "Naive direct JSON classification (348 tok)",
-            "inputTokens": 397,
-            "outputTokens": 348
+            "durationMs": 804,
+            "summary": "auditor-v1-neutral (170 tok, 803ms)",
+            "inputTokens": 446,
+            "outputTokens": 170
           }
         ]
       },
       "v2": {
-        "conversationId": "ts-v2-case-07-artin-erh-gap-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-07-artin-erh-gap-2026-11-20-17-25-08",
+        "conversationId": "ts-demo2-v3-case-07-artin-dedekind-open-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v3-case-07-artin-dedekind-open-2026-11-24-11-47-40",
         "predictedOutcome": "STILL_CONDITIONAL",
-        "conjectureType": "ERH",
+        "conjectureType": "BEYOND_DIRICHLET",
         "polarity": "ASSUMES_TRUE",
         "hasFallback": false,
         "exactMatch": true,
-        "authorAlert": "STILL BLOCKED even if Alpöge's Nov 20 RH + Dirichlet GRH archive passes! Both Hooley and Weinberger require ERH for non-abelian Kummer Dedekind zeta functions.",
-        "totalTokens": 758,
-        "wallMs": 445,
+        "authorAlert": "Both results rely on GRH for Dedekind zeta functions of number fields (Kummer fields for Hooley, arbitrary fields for Weinberger), not just Dirichlet L-functions over Z/qZ. Proving GRH for Dirichlet L-functions alone would not suffice to make either theorem unconditional.",
+        "totalTokens": 1896,
+        "wallMs": 894,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
+            "name": "resolve_paper_metadata",
             "durationMs": 0,
-            "summary": "doi:10.1515/crll.1967.225.209 (math.NT) — On Artin's conjecture (Hooley 1967) & Euclidean rings of"
+            "summary": " — On Artin's conjecture (Hooley 1967) & Euclidean rings of"
           },
           {
             "kind": "tool",
-            "name": "scan_conditional_clauses",
-            "durationMs": 0,
-            "summary": "ERH · fallback=false"
+            "name": "fetch_fulltext_windows",
+            "durationMs": 1,
+            "summary": "status=unavailable fmt=none windows=0 bib=0"
           },
           {
             "kind": "tool",
-            "name": "traverse_citation_hops",
+            "name": "scan_fulltext_scope_signals",
             "durationMs": 0,
-            "summary": "hop=1 via ROOT_ERH -> P14"
+            "summary": "dirichlet=false dedekindHecke=true uncond=false"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 890,
+            "summary": "auditor-v3-fulltext (176 tok, 889ms)",
+            "inputTokens": 1720,
+            "outputTokens": 176
           },
           {
             "kind": "tool",
             "name": "evaluate_world_state_diff",
             "durationMs": 0,
-            "summary": "STILL_CONDITIONAL (Waiting on ERH)"
-          },
-          {
-            "kind": "llm",
-            "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 445,
-            "summary": "Synthesized grounded verdict (14 tok)",
-            "inputTokens": 744,
-            "outputTokens": 14
+            "summary": "STILL_CONDITIONAL (Still Needs Number-Field ERH)"
           }
         ]
       }
     },
     {
-      "caseId": "case-08-lagarias-iff",
+      "caseId": "case-08-lagarias-lean-checked",
       "theoremId": "P02",
       "arxivOrDoi": "arXiv:math/0008177",
       "title": "An Elementary Problem Equivalent to the Riemann Hypothesis",
-      "presetId": "rh_only",
-      "presetLabel": "RH Only",
-      "trapFocus": "Exact biconditional RH equivalence (math/0008177) upgrades immediately under classical RH alone",
+      "presetId": "checked_nov24",
+      "presetLabel": "Checked Scope (RH + Dirichlet GRH)",
+      "trapFocus": "Lagarias's elementary inequality (math/0008177) is equivalent to classical RH and now compiled unconditionally in Lean 4",
       "expectedOutcome": "UPGRADED_UNCONDITIONAL",
       "expectedConjecture": "RH",
       "expectedPolarity": "ASSUMES_TRUE",
       "expectedFallback": false,
       "v1": {
-        "conversationId": "ts-v1-case-08-lagarias-iff-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v1-case-08-lagarias-iff-2026-11-20-17-25-08",
-        "predictedOutcome": "UPGRADED_UNCONDITIONAL",
-        "conjectureType": "RH-equivalence",
-        "polarity": "equivalent-to-RH",
+        "conversationId": "ts-demo2-v1-case-08-lagarias-lean-checked-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v1-case-08-lagarias-lean-checked-2026-11-24-11-47-40",
+        "predictedOutcome": "MENTION_ONLY_UNCHANGED",
+        "conjectureType": "RH",
+        "polarity": "ASSUMES_TRUE",
         "hasFallback": true,
         "exactMatch": false,
-        "authorAlert": "...",
-        "totalTokens": 441,
-        "wallMs": 1021,
+        "authorAlert": "This is an equivalence result, not a conditional theorem, so RH being true means the harmonic-number inequalities hold for all n; the paper's status is unchanged. No unconditional fallback issue arises since the equivalence itself is unconditional.",
+        "totalTokens": 564,
+        "wallMs": 1209,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 135,
-            "summary": "arXiv:math/0008177 (math.NT) — An Elementary Problem Equivalent to the Riemann Hypothes"
+            "name": "resolve_paper_metadata",
+            "durationMs": 393,
+            "summary": "math/0008177 — An Elementary Problem Equivalent to the Riemann Hypothes"
           },
           {
             "kind": "llm",
             "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 885,
-            "summary": "Naive direct JSON classification (132 tok)",
-            "inputTokens": 309,
-            "outputTokens": 132
+            "durationMs": 816,
+            "summary": "auditor-v1-neutral (152 tok, 816ms)",
+            "inputTokens": 412,
+            "outputTokens": 152
           }
         ]
       },
       "v2": {
-        "conversationId": "ts-v2-case-08-lagarias-iff-2026-11-20-17-25-08",
-        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-v2-case-08-lagarias-iff-2026-11-20-17-25-08",
+        "conversationId": "ts-demo2-v3-case-08-lagarias-lean-checked-2026-11-24-11-47-40",
+        "agentLensUrl": "https://forge.coreweave.com/agent-lens/wandb/theorem-survival/conversations/ts-demo2-v3-case-08-lagarias-lean-checked-2026-11-24-11-47-40",
         "predictedOutcome": "UPGRADED_UNCONDITIONAL",
         "conjectureType": "RH",
         "polarity": "ASSUMES_TRUE",
         "hasFallback": false,
         "exactMatch": true,
-        "authorAlert": "In this world-state classical RH is a theorem, so Lagarias's Theorem 1.1 ceases to be an equivalence with an open problem and becomes an unconditional inequality: sigma(n) <= H_n + exp(H_n) log(H_n) for all n >= 1, with equality only at n = 1. The proof needs only classical RH via Robin (1984) and Schoenfeld (1976); GRH and ERH remain open but are irrelevant here since they specialize to RH on Q, never the reverse.",
-        "totalTokens": 815,
-        "wallMs": 1079,
+        "authorAlert": "This paper proves an equivalence between the classical Riemann Hypothesis for zeta(s) and an elementary inequality for harmonic numbers; it does not prove RH itself, so the inequality remains unconditionally open. No Dirichlet GRH or other L-function hypothesis is involved.",
+        "totalTokens": 5338,
+        "wallMs": 1160,
         "spans": [
           {
             "kind": "tool",
-            "name": "fetch_arxiv_metadata",
-            "durationMs": 136,
-            "summary": "arXiv:math/0008177 (math.NT) — An Elementary Problem Equivalent to the Riemann Hypothes"
+            "name": "resolve_paper_metadata",
+            "durationMs": 387,
+            "summary": "math/0008177 — An Elementary Problem Equivalent to the Riemann Hypothes"
           },
           {
             "kind": "tool",
-            "name": "scan_conditional_clauses",
-            "durationMs": 0,
-            "summary": "RH · fallback=false"
+            "name": "fetch_fulltext_windows",
+            "durationMs": 1,
+            "summary": "status=ok fmt=arxiv_tex windows=10 bib=1"
           },
           {
             "kind": "tool",
-            "name": "traverse_citation_hops",
-            "durationMs": 0,
-            "summary": "hop=2 via P01 -> P02"
+            "name": "scan_fulltext_scope_signals",
+            "durationMs": 1,
+            "summary": "dirichlet=false dedekindHecke=false uncond=false"
+          },
+          {
+            "kind": "llm",
+            "name": "zai-org/GLM-5.3-Flash",
+            "durationMs": 770,
+            "summary": "auditor-v3-fulltext (129 tok, 770ms)",
+            "inputTokens": 5209,
+            "outputTokens": 129
           },
           {
             "kind": "tool",
             "name": "evaluate_world_state_diff",
             "durationMs": 0,
-            "summary": "UPGRADED_UNCONDITIONAL (Upgraded: New Theorem)"
-          },
-          {
-            "kind": "llm",
-            "name": "zai-org/GLM-5.3-Flash",
-            "durationMs": 942,
-            "summary": "Synthesized grounded verdict (160 tok)",
-            "inputTokens": 655,
-            "outputTokens": 160
+            "summary": "UPGRADED_UNCONDITIONAL (Becomes Proven)"
           }
         ]
       }

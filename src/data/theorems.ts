@@ -1,7 +1,21 @@
-import { adaptCorpusItems, AGENT_LENS_CONV_BASE } from "./corpus-adapter";
+import {
+  adaptCorpusItems,
+  adaptPoolItems,
+  AGENT_LENS_CONV_BASE,
+  type PoolCorpusItem,
+} from "./corpus-adapter";
+import top100EmbedRaw from "./top100-embed-corpus.json";
 
 export type TruthState = "OPEN" | "TRUE" | "FALSE";
-export type ConjectureType = "RH" | "GRH" | "ERH" | "DENSITY_BOUND";
+
+export type ConjectureType =
+  | "RH"
+  | "GRH_DIRICHLET"
+  | "BEYOND_DIRICHLET"
+  | "UNCLEAR"
+  | "DENSITY_BOUND"
+  | "MENTION_ONLY";
+
 export type Polarity = "ASSUMES_TRUE" | "ASSUMES_FALSE";
 export type Severity = "CORE_BLOCKER" | "SHARPENS_BOUND";
 export type ArxivCategory = "math.NT" | "cs.CC" | "cs.CR";
@@ -11,11 +25,21 @@ export type TopicBucket =
   | "Cryptography & Security"
   | "Algebra, Knots & Quantum";
 
+export type HarvestSource =
+  | "arxiv_abstract"
+  | "openalex_fulltext"
+  | "anchor_citations"
+  | "curated_classics"
+  | "attempt1_seed";
+
+export type ImportanceTier = "TOP_100" | "TOP_500" | "TAIL";
+export type EvidenceTier = "fulltext" | "abstract_only" | "curated_primary";
+
 export type PresetId =
-  | "nov20_live"
+  | "checked_nov24"
+  | "pre_nov20_open"
   | "rh_only"
-  | "alpoge_rh_grh"
-  | "full_rh_grh_erh"
+  | "full_ladder"
   | "siegel_zero_twist"
   | "rh_false";
 
@@ -24,12 +48,20 @@ export type OutcomeKind =
   | "BOUND_TIGHTENED"
   | "STILL_CONDITIONAL"
   | "VACUOUS_OR_SUPERSEDED"
-  | "HYPOTHESIS_FALSIFIED";
+  | "HYPOTHESIS_FALSIFIED"
+  | "MENTION_ONLY_UNCHANGED";
+
+export type PlainScopeGroup =
+  | "COVERED"
+  | "BEYOND"
+  | "UNCLEAR"
+  | "ALREADY_PROVEN"
+  | "MENTION_ONLY";
 
 export interface WorldState {
   rh: TruthState;
-  grh: TruthState;
-  erh: TruthState;
+  grhDirichlet: TruthState;
+  beyondDirichlet: TruthState;
   siegelZero: boolean;
   guthMaynard2024: boolean;
   alpogeFurman2026: boolean;
@@ -41,10 +73,17 @@ export interface DiffLine {
   lineNumber: number;
 }
 
+export interface MachineCheckedLeanBadge {
+  verified: boolean;
+  verifierUrl: string;
+  note: string;
+}
+
 export interface TheoremRecord {
   id: string;
   shortNodeTitle: string;
   arxivId?: string;
+  doi?: string;
   arxivOrDoi: string;
   url: string;
   title: string;
@@ -56,6 +95,13 @@ export interface TheoremRecord {
   topicBucket?: TopicBucket;
   plainSummary?: string;
   isFeatured?: boolean;
+  isNamedLandmark?: boolean;
+  citedByCount?: number | null;
+  importanceTier?: ImportanceTier;
+  foundBySources?: HarvestSource[];
+  evidenceTier?: EvidenceTier;
+  quoteLocator?: string;
+  machineCheckedLean?: MachineCheckedLeanBadge;
   agentLensUrl?: string;
   theoremLabel: string;
   conjectureType: ConjectureType;
@@ -87,6 +133,71 @@ export interface EvaluatedTheorem {
   deletions: number;
 }
 
+export function resolvePresetId(raw: string | null | undefined): PresetId {
+  if (!raw) return "checked_nov24";
+  if (raw === "alpoge_rh_grh" || raw === "checked_nov24") return "checked_nov24";
+  if (raw === "nov20_live" || raw === "pre_nov20_open") return "pre_nov20_open";
+  if (raw === "rh_only") return "rh_only";
+  if (raw === "full_rh_grh_erh" || raw === "full_ladder") return "full_ladder";
+  if (raw === "siegel_zero_twist") return "siegel_zero_twist";
+  if (raw === "rh_false") return "rh_false";
+  return "checked_nov24";
+}
+
+export function plainScopeGroup(t: TheoremRecord): PlainScopeGroup {
+  if (t.conjectureType === "MENTION_ONLY") return "MENTION_ONLY";
+  if (t.conjectureType === "DENSITY_BOUND") return "ALREADY_PROVEN";
+  if (t.conjectureType === "UNCLEAR") return "UNCLEAR";
+  if (t.conjectureType === "BEYOND_DIRICHLET") return "BEYOND";
+  return "COVERED";
+}
+
+export const PLAIN_SCOPE_LABELS: Record<PlainScopeGroup, string> = {
+  COVERED: "Covered by the checked proof",
+  BEYOND: "Needs the number-field version, still open",
+  UNCLEAR: "Paper doesn't say which",
+  ALREADY_PROVEN: "Already proven without it",
+  MENTION_ONLY: "Only mentions it",
+};
+
+export function outcomeStyle(outcome: OutcomeKind): {
+  shortLabel: string;
+  badge: string;
+} {
+  switch (outcome) {
+    case "UPGRADED_UNCONDITIONAL":
+      return {
+        shortLabel: "Becomes Proven",
+        badge: "bg-emerald-100 text-emerald-950 border-emerald-300",
+      };
+    case "BOUND_TIGHTENED":
+      return {
+        shortLabel: "Faster / Known",
+        badge: "bg-sky-100 text-sky-950 border-sky-300",
+      };
+    case "STILL_CONDITIONAL":
+      return {
+        shortLabel: "Still Open",
+        badge: "bg-amber-100 text-amber-950 border-amber-300",
+      };
+    case "VACUOUS_OR_SUPERSEDED":
+      return {
+        shortLabel: "Retired 'If-False'",
+        badge: "bg-rose-100 text-rose-950 border-rose-300",
+      };
+    case "HYPOTHESIS_FALSIFIED":
+      return {
+        shortLabel: "Hypothesis Disproven",
+        badge: "bg-rose-100 text-rose-950 border-rose-300",
+      };
+    case "MENTION_ONLY_UNCHANGED":
+      return {
+        shortLabel: "Only Mentions It",
+        badge: "bg-stone-100 text-stone-700 border-stone-300",
+      };
+  }
+}
+
 export const PRESETS: Array<{
   id: PresetId;
   label: string;
@@ -95,15 +206,30 @@ export const PRESETS: Array<{
   state: WorldState;
 }> = [
   {
-    id: "nov20_live",
-    label: "Today: Proof Still Checking",
-    shortLabel: "Today (Still Checking)",
+    id: "checked_nov24",
+    label: "Today: RH + Dirichlet GRH Checked in Lean",
+    shortLabel: "Checked Scope (RH + Dirichlet GRH)",
     description:
-      "Right now on Nov 20, 2026: Alpöge and Claude's 14-part Lean 4 archive compiled its target statements against Mathlib, while the full Lean proof replay is still running. Nothing new is unlocked yet.",
+      "Current verified scope as of Nov 24, 2026: Lean FRO, the Mathlib Initiative, and independent kernels (nanoda, con-leche, Comparator) certified RH and Dirichlet GRH; human peer review is still ahead. Dedekind, Hecke, Artin, and automorphic L-functions were not checked and remain open.",
+    state: {
+      rh: "TRUE",
+      grhDirichlet: "TRUE",
+      beyondDirichlet: "OPEN",
+      siegelZero: false,
+      guthMaynard2024: true,
+      alpogeFurman2026: true,
+    },
+  },
+  {
+    id: "pre_nov20_open",
+    label: "Before Nov 20: All Rungs Open",
+    shortLabel: "Before Nov 20 (All Open)",
+    description:
+      "Baseline before Nov 20, 2026 (or institutional Clay Prize status until journal publication and peer review finish): classical RH, Dirichlet GRH, and number-field ERH are all treated as open assumptions.",
     state: {
       rh: "OPEN",
-      grh: "OPEN",
-      erh: "OPEN",
+      grhDirichlet: "OPEN",
+      beyondDirichlet: "OPEN",
       siegelZero: false,
       guthMaynard2024: true,
       alpogeFurman2026: true,
@@ -111,44 +237,29 @@ export const PRESETS: Array<{
   },
   {
     id: "rh_only",
-    label: "If Only Basic RH Holds",
-    shortLabel: "Basic RH Only",
+    label: "If Only Classical RH Held",
+    shortLabel: "Classical RH Only",
     description:
-      "Suppose only the original 1859 Riemann Hypothesis verifies. Prime-counting and prime-gap theorems become proven facts, while computer science and cryptography papers needing GRH stay unproved.",
+      "Suppose only the 1859 Riemann Hypothesis for zeta(s) held, without Dirichlet GRH. Prime-counting and prime-gap theorems lock in, while deterministic primality bounds and modular-arithmetic algorithms stay conditional.",
     state: {
       rh: "TRUE",
-      grh: "OPEN",
-      erh: "OPEN",
+      grhDirichlet: "OPEN",
+      beyondDirichlet: "OPEN",
       siegelZero: false,
       guthMaynard2024: true,
       alpogeFurman2026: true,
     },
   },
   {
-    id: "alpoge_rh_grh",
-    label: "If Nov 20 Claim Holds (RH + GRH)",
-    shortLabel: "Nov 20 Claim (RH + GRH)",
+    id: "full_ladder",
+    label: "If Number-Field ERH Also Holds",
+    shortLabel: "Full Ladder (RH + Dirichlet + Number Fields)",
     description:
-      "Matches Alpöge's Friday announcement: both RH and Generalized RH (GRH) verify. Unlocks prime theory, fast deterministic algorithms, and post-quantum crypto security proofs — while Extended RH (ERH) papers still wait.",
+      "Suppose the method extends to Dedekind zeta, Hecke, and Artin L-functions over general number fields. Unlocks Artin's primitive-root conjecture, effective Chebotarev, Koiran's Nullstellensatz, and Wesolowski's SQIsign equivalence.",
     state: {
       rh: "TRUE",
-      grh: "TRUE",
-      erh: "OPEN",
-      siegelZero: false,
-      guthMaynard2024: true,
-      alpogeFurman2026: true,
-    },
-  },
-  {
-    id: "full_rh_grh_erh",
-    label: "If All Three Hold (RH + GRH + ERH)",
-    shortLabel: "All Three (RH + GRH + ERH)",
-    description:
-      "Original RH, Generalized RH, and Extended RH all hold. Unlocks higher algebra, number fields, and Artin's primitive-root conjecture as well.",
-    state: {
-      rh: "TRUE",
-      grh: "TRUE",
-      erh: "TRUE",
+      grhDirichlet: "TRUE",
+      beyondDirichlet: "TRUE",
       siegelZero: false,
       guthMaynard2024: true,
       alpogeFurman2026: true,
@@ -156,14 +267,14 @@ export const PRESETS: Array<{
   },
   {
     id: "siegel_zero_twist",
-    label: "Plot Twist: GRH Fails (Siegel Zeros)",
-    shortLabel: "What If GRH Fails?",
+    label: "Counterfactual: Dirichlet GRH Fails (Siegel Zeros)",
+    shortLabel: "What If Siegel Zeros Exist?",
     description:
-      "Basic RH holds, while Generalized RH fails via rare 'Siegel zeros'. Computer-science GRH proofs break — and 15 counterfactual papers (including the Twin Prime Conjecture!) suddenly become proven.",
+      "Counterfactual where classical RH holds while Dirichlet GRH fails via Landau-Siegel zeros near s = 1. Conditional GRH algorithms break, while 'if Siegel zeros exist' papers (including Heath-Brown's Twin Primes route) activate.",
     state: {
       rh: "TRUE",
-      grh: "FALSE",
-      erh: "FALSE",
+      grhDirichlet: "FALSE",
+      beyondDirichlet: "FALSE",
       siegelZero: true,
       guthMaynard2024: true,
       alpogeFurman2026: true,
@@ -171,14 +282,14 @@ export const PRESETS: Array<{
   },
   {
     id: "rh_false",
-    label: "What If RH Is Disproved?",
+    label: "Counterfactual: Classical RH Disproved",
     shortLabel: "If RH Fails",
     description:
-      "Suppose an off-line zero disproves RH (and therefore GRH and ERH too). Conditional upgrades fail or fall back to slower backup proofs, while unconditional 2024–2026 bounds survive intact.",
+      "Suppose an off-line zero disproves classical RH (and therefore Dirichlet GRH and number-field ERH too). Conditional theorems fail or revert to unconditional backup bounds, while 2024-2026 unconditional zero-density theorems stand.",
     state: {
       rh: "FALSE",
-      grh: "FALSE",
-      erh: "FALSE",
+      grhDirichlet: "FALSE",
+      beyondDirichlet: "FALSE",
       siegelZero: false,
       guthMaynard2024: true,
       alpogeFurman2026: true,
@@ -190,25 +301,31 @@ export const CONJECTURE_ROOTS: Array<{
   id: string;
   shortTitle: string;
   subtitle: string;
-  key: "rh" | "grh" | "erh" | "partial";
+  key: "rh" | "grhDirichlet" | "beyondDirichlet" | "unclear" | "partial" | "mention";
 }> = [
   {
     id: "ROOT_RH",
-    shortTitle: "RH · Original (1859)",
-    subtitle: "Prime counting & prime gaps",
+    shortTitle: "RH · Classical Zeta (1859)",
+    subtitle: "Prime counting & gaps — machine-checked",
     key: "rh",
   },
   {
-    id: "ROOT_GRH",
-    shortTitle: "GRH · Generalized",
-    subtitle: "Fast CS algorithms & crypto",
-    key: "grh",
+    id: "ROOT_GRH_DIRICHLET",
+    shortTitle: "Dirichlet GRH · Modular Arithmetic",
+    subtitle: "Primes in progressions & Miller-Bach — machine-checked",
+    key: "grhDirichlet",
   },
   {
-    id: "ROOT_ERH",
-    shortTitle: "ERH · Extended",
-    subtitle: "Higher number fields & algebra",
-    key: "erh",
+    id: "ROOT_BEYOND_DIRICHLET",
+    shortTitle: "Beyond Dirichlet · Number Fields & Hecke",
+    subtitle: "Dedekind zeta, Chebotarev, Artin — still open",
+    key: "beyondDirichlet",
+  },
+  {
+    id: "ROOT_UNCLEAR",
+    shortTitle: "Ambiguous 'GRH' · Unspecified Scope",
+    subtitle: "Paper writes 'GRH' without saying which",
+    key: "unclear",
   },
   {
     id: "ROOT_PARTIAL",
@@ -216,12 +333,21 @@ export const CONJECTURE_ROOTS: Array<{
     subtitle: "No conjecture needed",
     key: "partial",
   },
+  {
+    id: "ROOT_MENTION",
+    shortTitle: "Only Mentions It",
+    subtitle: "Main theorem is unconditional",
+    key: "mention",
+  },
 ];
+
+const SUTHERLAND_VERIFIER_URL = "https://math.mit.edu/~drew/grh/";
 
 const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
   {
     id: "P01",
     shortNodeTitle: "Schoenfeld · Explicit pi(x)",
+    doi: "10.1090/s0025-5718-1976-0457374-x",
     arxivOrDoi: "doi:10.1090/S0025-5718-1976-0457374-X",
     url: "https://doi.org/10.1090/S0025-5718-1976-0457374-X",
     title: "Sharper bounds for the Chebyshev functions theta(x) and psi(x). II",
@@ -239,6 +365,7 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     upstreamIds: ["ROOT_RH"],
     extractedQuote:
       "If the Riemann hypothesis is true, then |pi(x) - Li(x)| < sqrt(x) log(x) / (8 pi) for all x >= 2657.",
+    quoteLocator: "Corollary 1, p. 339",
     confidenceScore: 0.99,
     latexBefore: [
       "\\begin{corollary}[Schoenfeld 1976, Conditional on RH]",
@@ -258,12 +385,13 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{corollary}",
     ],
     authorAlertUpgrade:
-      "Upgrade ready: Corollary 1 drops its RH hypothesis. Square-root prime-counting error sqrt(x) log(x) / (8 pi) for all x >= 2657 becomes an unconditional constant.",
+      "Covered by classical RH: Corollary 1 drops its RH hypothesis, locking in |pi(x) - Li(x)| < sqrt(x) log(x) / (8 pi) for all x >= 2657.",
     authorAlertOpen:
-      "Blocked on classical RH. Until Lean Comparator finishes replaying Alpöge's zeta(s) proof terms, explicit prime tables above 10^19 must keep the RH caveat.",
+      "Conditional on classical RH; without it, explicit prime tables rely on wider zero-free-region error terms.",
     authorAlertFalsifiedOrVacuous:
-      "RH falsified: square-root error O(x^{1/2} log x) fails at sup Re(rho) > 1/2. Revert downstream explicit bounds to Mossinghoff-Trudgian zero-free regions.",
-    agentTrapNote: "Has unconditional de la Vallée Poussin / Mossinghoff-Trudgian fallback; RH sharpens the error term rather than proving the Prime Number Theorem.",
+      "RH falsified: square-root error O(x^{1/2} log x) fails at sup Re(rho) > 1/2, reverting to classical zero-free regions.",
+    agentTrapNote:
+      "Has unconditional de la Vallee Poussin / Mossinghoff-Trudgian fallback; RH sharpens the error term rather than proving the Prime Number Theorem.",
   },
   {
     id: "P02",
@@ -286,6 +414,12 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     upstreamIds: ["P01"],
     extractedQuote:
       "Show, for each n >= 1, that sum_{d|n} d <= H_n + exp(H_n) log(H_n), with equality only for n = 1. Theorem 1.1: Problem E is equivalent to the Riemann hypothesis.",
+    quoteLocator: "Theorem 1.1, p. 1",
+    machineCheckedLean: {
+      verified: true,
+      verifierUrl: SUTHERLAND_VERIFIER_URL,
+      note: "Machine-checked with zero hypotheses in Lean 4 by Andrew Sutherland (combining Alpöge's archive with kimihiro64/Robin1984; uses only propext, Classical.choice, Quot.sound).",
+    },
     confidenceScore: 0.99,
     latexBefore: [
       "\\begin{theorem}[Lagarias 2002, Equivalent to RH]",
@@ -294,7 +428,7 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{theorem}",
     ],
     latexAfterUpgrade: [
-      "\\begin{theorem}[Lagarias Inequality — Unconditional]",
+      "\\begin{theorem}[Lagarias Inequality — Machine-Checked in Lean 4]",
       "  For every integer n >= 1,",
       "  \\sigma(n) \\le H_n + \\exp(H_n)\\log(H_n), with equality iff n = 1.",
       "\\end{theorem}",
@@ -306,12 +440,62 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Hop-2 upgrade (via Schoenfeld P01): Lagarias's harmonic divisor inequality sigma(n) <= H_n + exp(H_n) log(H_n) flips from open equivalence to unconditional theorem for every n >= 1.",
+      "Already compiled as a hypothesis-free Lean 4 theorem (`lagarias_inequality`) in Sutherland's verification suite without mentioning zeta(s) in the elaborated statement.",
     authorAlertOpen:
-      "Exact biconditional with RH. Verified numerically up to colossal bounds, yet universally open until RH is confirmed.",
+      "Exact biconditional with classical RH for every integer n >= 1.",
     authorAlertFalsifiedOrVacuous:
-      "Because Theorem 1.1 is an iff equivalence, falsifying RH immediately implies infinitely many counterexample integers n violate Lagarias's divisor bound.",
-    agentTrapNote: "Exact iff equivalence with classical RH; needs RH only (not GRH).",
+      "Because Theorem 1.1 is an iff equivalence, falsifying RH implies infinitely many counterexample integers n violate Lagarias's divisor bound.",
+    agentTrapNote: "Exact iff equivalence with classical RH; already machine-checked unconditionally in Lean 4.",
+  },
+  {
+    id: "P17",
+    shortNodeTitle: "Robin · Divisor Inequality",
+    doi: "10.1016/0021-8693(84)90103-0",
+    arxivOrDoi: "doi:10.1016/0021-8693(84)90103-0",
+    url: "https://doi.org/10.1016/0021-8693(84)90103-0",
+    title: "Grandes valeurs de la fonction somme des diviseurs et hypothese de Riemann",
+    authors: "Guy Robin",
+    yearLabel: "1984",
+    category: "math.NT",
+    theoremLabel: "Theoreme 1",
+    conjectureType: "RH",
+    polarity: "ASSUMES_TRUE",
+    severity: "CORE_BLOCKER",
+    hasUnconditionalFallback: false,
+    fallbackSummary:
+      "Unconditionally Robin proved sigma(n) < e^gamma n log log n + 0.6483 n / log log n for n >= 3; dropping the remainder for all n > 5040 is equivalent to RH.",
+    hopDepth: 1,
+    upstreamIds: ["ROOT_RH"],
+    extractedQuote:
+      "The Riemann Hypothesis is true if and only if sigma(n) < e^gamma n log log n for every integer n > 5040.",
+    quoteLocator: "Theorem 1 (1984) & Sutherland ArithChallenge.lean",
+    machineCheckedLean: {
+      verified: true,
+      verifierUrl: SUTHERLAND_VERIFIER_URL,
+      note: "Machine-checked with zero hypotheses in Lean 4 (`robin_inequality`) by combining Alpöge's archive with kimihiro64/Robin1984.",
+    },
+    confidenceScore: 0.99,
+    latexBefore: [
+      "\\begin{theorem}[Robin 1984, Equivalent to RH]",
+      "  RH holds iff for all n > 5040, \\sigma(n) < e^{\\gamma} n \\log\\log n.",
+      "\\end{theorem}",
+    ],
+    latexAfterUpgrade: [
+      "\\begin{theorem}[Robin's Inequality — Machine-Checked in Lean 4]",
+      "  For every integer n > 5040, \\sigma(n) < e^{\\gamma} n \\log\\log n.",
+      "\\end{theorem}",
+    ],
+    latexAfterFallbackOrVacuous: [
+      "\\begin{theorem}[Disproved for Infinitely Many n > 5040]",
+      "  \\exists^\\infty n > 5040 \\text{ with } \\sigma(n) \\ge e^{\\gamma} n \\log\\log n.",
+      "\\end{theorem}",
+    ],
+    authorAlertUpgrade:
+      "Compiled as a hypothesis-free Lean 4 theorem (`robin_inequality`) by Andrew Sutherland using only standard axioms and no zeta-function mention in the target statement.",
+    authorAlertOpen: "Equivalent to classical RH for all n > 5040.",
+    authorAlertFalsifiedOrVacuous:
+      "Falsifying RH forces infinitely many integers n > 5040 to violate Robin's divisor bound.",
+    agentTrapNote: "Biconditional with classical RH; directly verified in Lean 4 during the Nov 21-23 checks.",
   },
   {
     id: "P03",
@@ -334,6 +518,7 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     upstreamIds: ["ROOT_RH"],
     extractedQuote:
       "Assuming the Riemann hypothesis, we prove that p_{n+1} - p_n < (22/25) sqrt(p_n) log(p_n) for all primes p_n >= 3.",
+    quoteLocator: "Theorem 1.1, p. 2",
     confidenceScore: 0.98,
     latexBefore: [
       "\\begin{theorem}[Carneiro-Milinovich-Soundararajan 2019]",
@@ -354,12 +539,13 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Upgrade ready: Theorem 1.1 drops its RH assumption, slashing the proven worst-case prime-gap exponent from x^{0.525} down to (22/25) x^{0.5} log x for all primes >= 3.",
+      "Covered by classical RH: Theorem 1.1 drops its RH assumption, tightening worst-case prime gaps from x^{0.525} to (22/25) x^{0.5} log x for all primes >= 3.",
     authorAlertOpen:
-      "Blocked on RH. Upstream citation dependency for effective short-interval prime theorems such as Visser (arXiv:2610.27830).",
+      "Conditional on classical RH; upstream dependency for Visser (arXiv:2610.27830).",
     authorAlertFalsifiedOrVacuous:
-      "RH falsified: explicit (22/25) sqrt(p_n) log p_n prime-gap bound loses its proof; worst-case prime gaps revert to Baker-Harman-Pintz x^{0.525}.",
-    agentTrapNote: "Sharpens Baker-Harman-Pintz x^{0.525} unconditional bound; also note RH still leaves Cramér's O((log p_n)^2) conjecture open!",
+      "RH falsified: explicit (22/25) sqrt(p_n) log p_n bound loses its proof; worst-case prime gaps revert to Baker-Harman-Pintz x^{0.525}.",
+    agentTrapNote:
+      "Sharpens Baker-Harman-Pintz x^{0.525} unconditional bound; note RH still leaves Legendre's and Cramer's conjectures open.",
   },
   {
     id: "P04",
@@ -382,6 +568,7 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     upstreamIds: ["P03"],
     extractedQuote:
       "Theorem 1: Assuming the Riemann hypothesis, for x >= 3.5 * 10^90 there is at least one prime in the interval [x, x + x^{1/2 + 1/40}].",
+    quoteLocator: "Abstract & Theorem 1",
     confidenceScore: 0.99,
     latexBefore: [
       "\\begin{theorem}[Visser, Oct 2026 — arXiv:2610.27830]",
@@ -402,12 +589,12 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Author alert for Matt Visser (uploaded 31 days ago, Hop 2 via 1708.04122): Theorems 1-3 upgrade to unconditional, making Baker-Harman-Pintz explicitly effective at x >= 3.5e90.",
+      "Covered by classical RH (Hop 2 via 1708.04122): Theorems 1-3 upgrade to unconditional, making Baker-Harman-Pintz explicitly effective at x >= 3.5e90.",
     authorAlertOpen:
-      "Fresh Oct 2026 preprint waiting directly on RH via Carneiro-Milinovich-Soundararajan (Hop 1).",
+      "Oct 2026 preprint waiting directly on classical RH via Carneiro-Milinovich-Soundararajan.",
     authorAlertFalsifiedOrVacuous:
       "Without RH, the CMS crossover calculation at x_* = 3.48e90 breaks; Baker-Harman-Pintz remains ineffective.",
-    agentTrapNote: "2-hop transitive RH dependency via 1708.04122; no unconditional explicit cutoff exists for BHP.",
+    agentTrapNote: "2-hop transitive classical RH dependency via 1708.04122; no unconditional explicit cutoff exists for BHP.",
   },
   {
     id: "P05",
@@ -430,6 +617,7 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     upstreamIds: ["ROOT_PARTIAL"],
     extractedQuote:
       "Combining this with Ingham's estimate when sigma <= 7/10, we obtain N(sigma, T) <= T^{30(1-sigma)/13 + o(1)} and primes in [x, x + x^{17/30 + o(1)}].",
+    quoteLocator: "Section 1, Theorem 1.2",
     confidenceScore: 0.99,
     latexBefore: [
       "\\begin{theorem}[Guth-Maynard 2024 — Already Unconditional]",
@@ -450,10 +638,11 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     authorAlertUpgrade:
       "On zeta zeros, RH = True sets N(sigma, T) = 0 for every sigma > 1/2, superseding Theorem 1.2's zero-density bound while keeping Theorem 1.1's Dirichlet polynomial estimate intact.",
     authorAlertOpen:
-      "Unconditionally proven (v2 Apr 2026). Stands as the strongest unconditional bound on potential off-line zeros while Alpöge's Lean archive is audited.",
+      "Unconditionally proven (v2 Apr 2026); caps potential off-line zeta zeros without any hypothesis.",
     authorAlertFalsifiedOrVacuous:
-      "Critical survival shield: because Guth-Maynard is unconditional, Theorem 1.2 still caps how many off-line counterexamples can exist up to height T.",
-    agentTrapNote: "Already unconditional; Theorem 1.2 zero-density is superseded by RH, whereas Theorem 1.1 large-value Dirichlet polynomial bound stays useful.",
+      "Because Guth-Maynard is unconditional, Theorem 1.2 still bounds how many off-line counterexamples can exist up to height T.",
+    agentTrapNote:
+      "Already unconditional; Theorem 1.2 zero-density is superseded by RH, whereas Theorem 1.1 large-value Dirichlet polynomial bound stays useful.",
   },
   {
     id: "P06",
@@ -476,6 +665,7 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     upstreamIds: ["P05"],
     extractedQuote:
       "We prove unconditionally that at least two thirds of the nontrivial zeros of the Riemann zeta function, counted with multiplicity, are simple and lie on the critical line (0.6725 with Montgomery-Taylor).",
+    quoteLocator: "Abstract & Theorem 1.1",
     confidenceScore: 0.99,
     latexBefore: [
       "\\begin{theorem}[Alpöge-Furman + Claude, Aug 2026 — Lean 4 Verified]",
@@ -494,12 +684,13 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Subtle distinction: RH upgrades the critical-line fraction from 67.25% to 100%, yet RH alone permits double zeros on Re(s)=1/2 — so this paper's >= 67.25% simplicity theorem (and Lamzouri 2609.02882) still does real work.",
+      "RH upgrades the critical-line fraction from 67.25% to 100%, yet RH alone permits double zeros on Re(s)=1/2 — so this paper's >= 67.25% simplicity theorem still does real work.",
     authorAlertOpen:
-      "Already passed Lean 4 Comparator in Aug 2026 (anthropics/formal-math/zeta23). Precursor to the Nov 20 full RH claim.",
+      "Already passed Lean 4 Comparator in Aug 2026 (anthropics/formal-math/zeta23).",
     authorAlertFalsifiedOrVacuous:
-      "Even if the Nov 20 full RH archive fails verification, August's Lean-verified 67.25% theorem remains unconditionally valid.",
-    agentTrapNote: "TRAP (`simplicity-vs-location-blur`): Classical RH places all zeros on Re(s)=1/2, NOT simple multiplicity 1! So >= 67.25% simplicity is NOT superseded by RH alone.",
+      "Even if classical RH failed, August's Lean-verified 67.25% theorem remains unconditionally valid.",
+    agentTrapNote:
+      "TRAP (`simplicity-vs-location-blur`): Classical RH places all zeros on Re(s)=1/2, NOT simple multiplicity 1! So >= 67.25% simplicity is NOT superseded by RH alone.",
   },
   {
     id: "P07",
@@ -522,6 +713,7 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     upstreamIds: ["P01"],
     extractedQuote:
       "Assume RH... Then the GRH for all Dirichlet L-functions L(s, chi) mod q is equivalent to the asymptotic formula Z(x; t, a/q_1) = ... + O(x^epsilon).",
+    quoteLocator: "Theorem 1, Section 1",
     confidenceScore: 0.96,
     latexBefore: [
       "\\begin{theorem}[Suzuki 2025 — Conditional Bridge]",
@@ -530,8 +722,8 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{theorem}",
     ],
     latexAfterUpgrade: [
-      "\\begin{theorem}[Suzuki 2025 — Unconditional Bridge to GRH]",
-      "  GRH mod q is unconditionally equivalent to the vertical zeta-zero",
+      "\\begin{theorem}[Suzuki 2025 — Unconditional Bridge to Dirichlet GRH]",
+      "  Dirichlet GRH mod q is unconditionally equivalent to the vertical zeta-zero",
       "  asymptotic Z(x; t, a/q_1) = main_term + O(x^\\varepsilon).",
       "\\end{theorem}",
     ],
@@ -541,15 +733,17 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Upgrade ready under RH alone: Theorem 1 becomes an unconditional bridge reducing Dirichlet GRH mod q to vertical spacing sums of zeta(s) zeros.",
+      "Covered under classical RH alone: Theorem 1 becomes an unconditional bridge reducing Dirichlet GRH mod q to vertical spacing sums of zeta(s) zeros.",
     authorAlertOpen: "Waiting on classical RH.",
     authorAlertFalsifiedOrVacuous:
       "Off-line zeros of zeta(s) invalidate the single-line ordinate representation in Theorem 1.",
-    agentTrapNote: "Theorem 1 only assumes classical RH to establish an equivalence with GRH; Theorem 2 additionally assumes GRH.",
+    agentTrapNote:
+      "Theorem 1 only assumes classical RH to establish an equivalence with Dirichlet GRH.",
   },
   {
     id: "P08",
     shortNodeTitle: "Miller-Bach · Fast Primality",
+    doi: "10.1090/s0025-5718-1990-1023756-8",
     arxivOrDoi: "doi:10.1090/S0025-5718-1990-1023756-8",
     url: "https://doi.org/10.1090/S0025-5718-1990-1023756-8",
     title: "Explicit bounds for primality testing and related problems",
@@ -557,20 +751,21 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     yearLabel: "1990",
     category: "cs.CC",
     theoremLabel: "Theorem 2 & Miller Det. Test",
-    conjectureType: "GRH",
+    conjectureType: "GRH_DIRICHLET",
     polarity: "ASSUMES_TRUE",
     severity: "SHARPENS_BOUND",
     hasUnconditionalFallback: true,
     fallbackSummary:
-      "AKS (2002) already proved PRIMES in P unconditionally in O~(log^6 n), and randomized Miller-Rabin runs in O~(k log^2 n); GRH upgrades deterministic 2(ln n)^2 Miller testing to O~(log^4 n).",
+      "AKS (2002) already proved PRIMES in P unconditionally in O~(log^6 n), and randomized Miller-Rabin runs in O~(k log^2 n); Dirichlet GRH upgrades deterministic 2(ln n)^2 Miller testing to O~(log^4 n).",
     hopDepth: 1,
-    upstreamIds: ["ROOT_GRH"],
+    upstreamIds: ["ROOT_GRH_DIRICHLET"],
     extractedQuote:
-      "If the GRH/ERH for quadratic Dirichlet characters holds, a composite number m has a strong compositeness witness at most 2 (log m)^2.",
+      "By results of Ankeny, Montgomery, and Bach (1990), GRH for all Dirichlet L-functions implies each proper subgroup of (Z/mZ)* misses an integer <= 2(log m)^2.",
+    quoteLocator: "Bach 1990 Theorem 2 / MathOverflow Q17209 (f)",
     confidenceScore: 0.99,
     latexBefore: [
-      "\\begin{theorem}[Miller 1976 / Bach 1990 — Conditional on Quadratic GRH]",
-      "  Assuming GRH, testing bases a <= 2(\\ln n)^2 deterministically",
+      "\\begin{theorem}[Miller 1976 / Bach 1990 — Conditional on Dirichlet GRH]",
+      "  Assuming Dirichlet GRH, testing bases a <= 2(\\ln n)^2 deterministically",
       "  decides primality in \\tilde{O}((\\log n)^4) time.",
       "\\end{theorem}",
     ],
@@ -586,12 +781,13 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Requires GRH (not classical RH alone): Under Alpöge's RH+GRH claim, deterministic Miller primality testing up to 2(ln n)^2 becomes unconditionally sound in O~(log^4 n).",
+      "Covered by Dirichlet GRH: deterministic Miller primality testing up to 2(ln n)^2 becomes unconditionally sound in O~(log^4 n) (sharpening unconditional AKS).",
     authorAlertOpen:
-      "Still conditional if only classical RH holds; needs quadratic Dirichlet GRH.",
+      "Still conditional if only classical RH holds; needs Dirichlet GRH.",
     authorAlertFalsifiedOrVacuous:
-      "GRH falsified: deterministic witness cutoff 2(ln n)^2 loses its proof, while PRIMES in P survives unconditionally via AKS (2002).",
-    agentTrapNote: "TRAP (`rh-grh-erh-conflated` + `missed-unconditional-fallback`): Needs quadratic Dirichlet GRH (not classical RH), and PRIMES in P is already unconditional via AKS 2002.",
+      "Dirichlet GRH falsified: deterministic witness cutoff 2(ln n)^2 loses its proof, while PRIMES in P survives unconditionally via AKS (2002).",
+    agentTrapNote:
+      "TRAP (`missed-unconditional-fallback`): Covered by Dirichlet GRH, AND PRIMES in P was already unconditional via AKS 2002.",
   },
   {
     id: "P09",
@@ -603,28 +799,29 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     authors: "Greg Kuperberg",
     yearLabel: "2014",
     category: "cs.CC",
-    theoremLabel: "Theorem 1.1",
-    conjectureType: "GRH",
+    theoremLabel: "Theorem 1.1 & Theorem 3.3",
+    conjectureType: "BEYOND_DIRICHLET",
     polarity: "ASSUMES_TRUE",
     severity: "SHARPENS_BOUND",
     hasUnconditionalFallback: true,
     fallbackSummary:
-      "Scraper trap: Marc Lackenby (arXiv:1604.03778, pub. 2021) already proved Knottedness in NP unconditionally via Thurston norm! GRH only keeps Kuperberg's algebraic SL(2, F_p) witness route unconditional.",
-    hopDepth: 1,
-    upstreamIds: ["ROOT_GRH"],
+      "Marc Lackenby (arXiv:1604.03778, pub. 2021) already proved Knottedness in NP unconditionally via Thurston norm! Kuperberg's algebraic SL(2, F_p) route invokes Koiran + Lagarias-Odlyzko effective Chebotarev (Dedekind zeta_K).",
+    hopDepth: 2,
+    upstreamIds: ["P14"],
     extractedQuote:
-      "Let K subset S^3 be a knot described by a knot diagram... Then the assertion that K is knotted is in NP, assuming the generalized Riemann hypothesis (GRH).",
-    confidenceScore: 0.97,
+      "Theorem 3.2 [Lagarias-Odlyzko, Weinberger]: Assuming the generalized Riemann hypothesis [for Dedekind zeta functions via effective Chebotarev], Koiran's Nullstellensatz yields p with poly(n) bits.",
+    quoteLocator: "main.tex Section 3, Theorems 3.1-3.3",
+    confidenceScore: 0.99,
     latexBefore: [
-      "\\begin{theorem}[Kuperberg 2014 — Superseded on Class Membership]",
-      "  Assuming GRH, Knottedness \\in \\mathsf{NP} via short SL(2, \\mathbb{F}_p) certificates.",
+      "\\begin{theorem}[Kuperberg 2014 — Title Says GRH, Proof Uses Dedekind Chebotarev]",
+      "  Assuming Dedekind GRH (via Koiran + Lagarias-Odlyzko), Knottedness \\in \\mathsf{NP}.",
       "  % Note: Lackenby (1604.03778) already proved Knottedness in NP unconditionally!",
       "\\end{theorem}",
     ],
     latexAfterUpgrade: [
       "\\begin{theorem}[Short Finite-Field Witness Route Unconditional]",
-      "  Kuperberg's polynomial-bit prime p SL(2, \\mathbb{F}_p) non-abelian representation",
-      "  certificate now holds unconditionally alongside Lackenby's topological proof.",
+      "  Kuperberg's polynomial-bit prime p SL(2, \\mathbb{F}_p) representation certificate",
+      "  holds unconditionally once Dedekind ERH clears (class membership already known via Lackenby).",
       "\\end{theorem}",
     ],
     latexAfterFallbackOrVacuous: [
@@ -633,12 +830,13 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Fallback check: Knottedness in NP was ALREADY made unconditional by Lackenby (arXiv:1604.03778), so GRH = True upgrades Kuperberg's short SL(2, F_p) prime-modulus certificate bound rather than the complexity class itself.",
+      "Requires number-field ERH (Koiran -> Lagarias-Odlyzko effective Chebotarev), AND Knottedness in NP was already proved unconditionally by Lackenby (1604.03778).",
     authorAlertOpen:
-      "Class membership already unconditional via Lackenby (2016); Kuperberg's algebraic prime-bound route waits on GRH.",
+      "Double trap caught in Attempt 2: title writes 'modulo GRH', but Section 3 invokes Lagarias-Odlyzko effective Chebotarev over number fields (still open under Dirichlet-only GRH). Meanwhile Lackenby already proved Knottedness in NP unconditionally.",
     authorAlertFalsifiedOrVacuous:
-      "Even if GRH fails, Unknottedness in NP intersect coNP survives unconditionally via Lackenby (1604.03778).",
-    agentTrapNote: "TRAP (`missed-unconditional-fallback` + `rh-grh-erh-conflated`): Needs GRH (effective Chebotarev), AND Lackenby (1604.03778) already proved Knottedness in NP unconditionally!",
+      "Even if number-field ERH fails, Knottedness in NP survives unconditionally via Lackenby (1604.03778).",
+    agentTrapNote:
+      "DOUBLE TRAP: Title/abstract say 'GRH', Section 3 cites Koiran + Lagarias-Odlyzko (Dedekind zeta_K, NOT Dirichlet GRH), AND Lackenby (1604.03778) already proved Knottedness in NP unconditionally.",
   },
   {
     id: "P10",
@@ -651,40 +849,43 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     yearLabel: "2017",
     category: "cs.CC",
     theoremLabel: "Theorem 1.1 & Theorem 1.3",
-    conjectureType: "GRH",
+    conjectureType: "BEYOND_DIRICHLET",
     polarity: "ASSUMES_TRUE",
     severity: "CORE_BLOCKER",
     hasUnconditionalFallback: false,
     fallbackSummary:
-      "TORUS-KNOT in NP is unconditional (Thm 4.3), whereas TORUS-KNOT in coNP, SATELLITE-KNOT in NP, and HYPERBOLIC-KNOT in coNP still have NO unconditional proof.",
+      "TORUS-KNOT in NP is unconditional (Thm 4.3), whereas TORUS-KNOT in coNP, SATELLITE-KNOT in NP, and HYPERBOLIC-KNOT in coNP rely on Koiran + Lagarias-Odlyzko effective Chebotarev (Dedekind ERH).",
     hopDepth: 2,
     upstreamIds: ["P09"],
     extractedQuote:
-      "Theorem 1.1: The torus knot recognition problem is in NP intersect co-NP, assuming GRH... Theorem 1.3: The satellite knot recognition problem is in NP, assuming GRH.",
-    confidenceScore: 0.98,
+      "We remark that the generalized Riemann hypothesis is used in [Lagarias-Odlyzko, Weinberger] to provide an effective version of the Chebotarev density theorem, guaranteeing p has polynomially many digits.",
+    quoteLocator: "torusknots.tex Section 5, after Theorem 5.2",
+    confidenceScore: 0.99,
     latexBefore: [
-      "\\begin{theorem}[Baldwin-Sivek 2017 — Blocked on GRH]",
-      "  Assuming GRH: TorusKnot \\in \\mathsf{NP}\\cap\\mathsf{coNP},",
+      "\\begin{theorem}[Baldwin-Sivek 2017 — Needs Effective Chebotarev (Dedekind ERH)]",
+      "  Assuming Dedekind GRH/ERH: TorusKnot \\in \\mathsf{NP}\\cap\\mathsf{coNP},",
       "  SatelliteKnot \\in \\mathsf{NP}, and HyperbolicKnot \\in \\mathsf{coNP}.",
       "\\end{theorem}",
     ],
     latexAfterUpgrade: [
-      "\\begin{theorem}[Baldwin-Sivek 2017 — Upgraded Unconditional]",
+      "\\begin{theorem}[Baldwin-Sivek 2017 — Unconditional Under Number-Field ERH]",
       "  Unconditionally: TorusKnot \\in \\mathsf{NP}\\cap\\mathsf{coNP},",
       "  SatelliteKnot \\in \\mathsf{NP}, and HyperbolicKnot \\in \\mathsf{coNP}.",
       "\\end{theorem}",
     ],
     latexAfterFallbackOrVacuous: [
       "\\begin{theorem}[Partial Survival: Only TorusKnot in NP]",
-      "  % coNP certificate for non-torus knots and NP satellite witness break without GRH.",
+      "  % coNP certificate for non-torus knots and NP satellite witness break without Dedekind ERH.",
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Hop-2 complexity unlock: Unlike Kuperberg (which Lackenby bypassed), Baldwin & Sivek's coNP torus-knot, NP satellite-knot, and coNP hyperbolic-knot theorems genuinely unlock under GRH = True.",
-    authorAlertOpen: "Still conditional on GRH (classical RH alone is not enough).",
+      "Unlocks once number-field ERH clears: effective Chebotarev certifies polynomial-digit primes for SL_2(F_p) knot representations.",
+    authorAlertOpen:
+      "Corrected in Attempt 2: abstract says 'assuming GRH', but Section 5 explicitly invokes Lagarias-Odlyzko effective Chebotarev (Dedekind zeta_K), so Dirichlet GRH alone does NOT settle this paper.",
     authorAlertFalsifiedOrVacuous:
-      "Without GRH, only TorusKnot in NP (Thm 4.3) stands; coNP membership loses its short prime certificate.",
-    agentTrapNote: "Requires GRH; unlike Unknot in NP cap coNP, TorusKnot in coNP and SatelliteKnot in NP have no unconditional Lackenby bypass.",
+      "Without number-field ERH, only TorusKnot in NP (Thm 4.3) stands unconditionally.",
+    agentTrapNote:
+      "TRAP (`rh-grh-erh-conflated`): Abstract writes 'assuming GRH'; Section 5 explicitly remarks that GRH means Lagarias-Odlyzko effective Chebotarev (Dedekind zeta_K).",
   },
   {
     id: "P11",
@@ -697,19 +898,20 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     yearLabel: "Dec 2024 (v2 Aug 2026)",
     category: "cs.CC",
     theoremLabel: "Theorem 1.4",
-    conjectureType: "ERH",
+    conjectureType: "BEYOND_DIRICHLET",
     polarity: "ASSUMES_TRUE",
     severity: "CORE_BLOCKER",
     hasUnconditionalFallback: false,
     fallbackSummary:
-      "Without ERH/GRH (via Parametric Hilbert's Nullstellensatz), it was open whether Schubert coefficient vanishing {c^w_{u,v} =? 0} even lies inside the Polynomial Hierarchy PH.",
+      "Without Dedekind ERH (via Parametric Hilbert's Nullstellensatz), it remains open whether Schubert coefficient vanishing {c^w_{u,v} =? 0} lies inside the Polynomial Hierarchy PH.",
     hopDepth: 2,
-    upstreamIds: ["P14", "P08"],
+    upstreamIds: ["P14"],
     extractedQuote:
-      "Theorem 1.4: SchubertVanishing is in coAM assuming GRH [authors note ERH suffices]. Notably, SchubertVanishing is in the polynomial hierarchy PH.",
-    confidenceScore: 0.97,
+      "Theorem 1.4: SchubertVanishing is in coAM assuming GRH [Section 1.4 notes Dedekind ERH is the analytic input via Parametric Nullstellensatz].",
+    quoteLocator: "Section 1.4 & Theorem 1.4",
+    confidenceScore: 0.99,
     latexBefore: [
-      "\\begin{theorem}[Pak-Robichaux 2024/2026 — Conditional on ERH]",
+      "\\begin{theorem}[Pak-Robichaux 2024/2026 — Conditional on Dedekind ERH]",
       "  Assuming ERH (Dedekind zeta functions), SchubertVanishing \\in \\mathsf{coAM} \\subseteq \\Sigma_2^{\\mathsf{P}}.",
       "\\end{theorem}",
     ],
@@ -720,20 +922,21 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     ],
     latexAfterFallbackOrVacuous: [
       "\\begin{theorem}[Reverts Outside Known PH]",
-      "  % Without ERH / effective Chebotarev, PH membership for {c^w_{u,v} = 0} is open.",
+      "  % Without Dedekind ERH / effective Chebotarev, PH membership for {c^w_{u,v} = 0} is open.",
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Combinatorics/complexity upgrade once ERH clears: Schubert coefficient vanishing enters coAM (and therefore the Polynomial Hierarchy PH) unconditionally across types A, B, C, D.",
+      "Unlocks once number-field ERH clears: Schubert coefficient vanishing enters coAM (and PH) across Lie types A, B, C, D.",
     authorAlertOpen:
-      "Fine-print alert on Alpöge's Nov 20 note: Pak-Robichaux traces its Nullstellensatz prime-ideal step to Dedekind ERH, which Alpöge said he expects 'with more time' beyond Dirichlet GRH.",
+      "Still open under the checked Nov 20 archive: abstract writes 'assuming GRH', while Parametric Nullstellensatz prime-ideal bounds require Dedekind ERH.",
     authorAlertFalsifiedOrVacuous:
-      "If ERH fails, Parametric Nullstellensatz prime bounds lose polynomial bit-length, leaving SchubertVanishing outside proven PH.",
-    agentTrapNote: "TRAP (`rh-grh-erh-conflated`): Abstract writes 'GRH', Section 1.4 notes Dedekind ERH is the actual analytic input via Koiran / Rojas Parametric Nullstellensatz.",
+      "If Dedekind ERH fails, Parametric Nullstellensatz prime bounds lose polynomial bit-length, leaving SchubertVanishing outside proven PH.",
+    agentTrapNote:
+      "TRAP (`rh-grh-erh-conflated`): Abstract writes 'GRH', Section 1.4 traces the Nullstellensatz step to Dedekind ERH.",
   },
   {
     id: "P12",
-    shortNodeTitle: "Wesolowski · SQIsign Security",
+    shortNodeTitle: "Wesolowski · SQIsign Equivalence",
     arxivId: "2111.01481",
     arxivOrDoi: "arXiv:2111.01481",
     url: "https://arxiv.org/abs/2111.01481",
@@ -741,88 +944,98 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     authors: "Benjamin Wesolowski",
     yearLabel: "FOCS 2021",
     category: "cs.CR",
-    theoremLabel: "Main Theorem (FOCS 2021)",
-    conjectureType: "GRH",
+    theoremLabel: "Main Theorem & Theorem 3.1",
+    conjectureType: "BEYOND_DIRICHLET",
     polarity: "ASSUMES_TRUE",
     severity: "CORE_BLOCKER",
     hasUnconditionalFallback: false,
     fallbackSummary:
-      "No unconditional poly-time reduction exists between l-IsogenyPath and EndRing; NIST post-quantum signature candidate SQIsign relies on this reduction for rigorous security & signing guarantees.",
+      "Section 3 (`thm:primebinaryform`) invokes Lagarias-Odlyzko effective Chebotarev (`LO77`) to sample primes represented by a fixed binary quadratic form (ring-class / Hecke L-functions beyond Dirichlet GRH). Note: 2025 follow-up work (arXiv:2502.17010) built alternative unconditional isogeny foundations.",
     hopDepth: 2,
     upstreamIds: ["P13"],
     extractedQuote:
-      "We prove that the path-finding problem in l-isogeny graphs and the endomorphism ring problem for supersingular elliptic curves are equivalent under reductions of polynomial expected time, assuming GRH.",
+      "It is a classical consequence of the effective Chebotarev density theorem under GRH, due to Lagarias and Odlyzko [LO77]. Theorem [GRH]: If f is an integral, primitive, positive definite, binary quadratic form of discriminant D, pi_f(rho) = delta rho / (h(D) log rho) + O(rho^{1/2} log(|D| rho)).",
+    quoteLocator: "paper.tex Section 3 (`sec:qfprimesampling`, Theorem `thm:primebinaryform`)",
     confidenceScore: 0.99,
     latexBefore: [
-      "\\begin{theorem}[Wesolowski, FOCS 2021 — Conditional on GRH]",
-      "  Assuming GRH (Hecke/Dirichlet L-functions), \\ell\\text{-IsogenyPath} \\equiv_{\\mathrm{PPT}} \\mathsf{EndRing}.",
+      "\\begin{theorem}[Wesolowski, FOCS 2021 — Needs Effective Chebotarev (`LO77`)]",
+      "  Assuming GRH (including Lagarias-Odlyzko for binary quadratic forms),",
+      "  \\ell\\text{-IsogenyPath} \\equiv_{\\mathrm{PPT}} \\mathsf{EndRing}.",
       "\\end{theorem}",
     ],
     latexAfterUpgrade: [
       "\\begin{theorem}[Wesolowski, FOCS 2021 — Unconditional Crypto Reduction]",
       "  \\ell\\text{-IsogenyPath} \\equiv_{\\mathrm{PPT}} \\mathsf{EndRing} unconditionally;",
-      "  SQIsign's foundational hardness equivalence drops its GRH caveat.",
+      "  SQIsign's original equivalence drops its Chebotarev/GRH hypothesis.",
       "\\end{theorem}",
     ],
     latexAfterFallbackOrVacuous: [
       "\\begin{theorem}[Crypto Reduction Degrades to Heuristic]",
-      "  % Quaternion path-finding loses proven expected polynomial runtime.",
+      "  % Ideal-to-prime preconditioning in Section 3 loses proven polynomial runtime.",
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Contrary to 'RH breaks crypto' memes: GRH = True STRENGTHENS post-quantum isogeny cryptography! Wesolowski's FOCS 2021 security equivalence behind SQIsign upgrades from GRH-conditional to unconditional.",
+      "Once number-field / ring-class ERH clears, Wesolowski's FOCS 2021 equivalence upgrades to unconditional — strengthening (never breaking) post-quantum isogeny reductions.",
     authorAlertOpen:
-      "Waiting on GRH. Classical RH for zeta(s) is insufficient because quaternion ideal norm representation needs L-functions of quadratic characters.",
+      "Corrected in Attempt 2: we initially counted SQIsign's FOCS 2021 equivalence as settled under 'GRH', but `paper.tex` Section 3 invokes Lagarias-Odlyzko (`LO77`) effective Chebotarev for primes represented by a binary quadratic form (beyond Dirichlet L-functions).",
     authorAlertFalsifiedOrVacuous:
-      "If GRH fails, rigorous polynomial-time quaternion path-finding in Wesolowski's reduction reverts to heuristic status (like original KLPT).",
-    agentTrapNote: "TRAP (`crypto-break-hallucination` + `rh-grh-erh-conflated`): Needs GRH (not RH), and proving GRH STRENGTHENS post-quantum SQIsign security reductions rather than breaking crypto!",
+      "If number-field GRH/ERH fails, Section 3's prime-ideal preconditioning loses its proven polynomial bound.",
+    agentTrapNote:
+      "DOUBLE TRAP: Doesn't break crypto (strengthens SQIsign), AND its 'assuming GRH' abstract hides a Section 3 Lagarias-Odlyzko effective Chebotarev call (`LO77`) beyond Dirichlet GRH.",
   },
   {
     id: "P13",
-    shortNodeTitle: "Jao-MV · GRH Expander Graphs",
-    arxivOrDoi: "doi:10.1007/s00145-008-9029-4",
-    url: "https://doi.org/10.1007/s00145-008-9029-4",
-    title: "Expander graphs based on GRH with an application to elliptic curve cryptography",
+    shortNodeTitle: "Jao-MV · Hecke Isogeny Expanders",
+    arxivId: "math/0411378",
+    doi: "10.1007/s00145-008-9029-4",
+    arxivOrDoi: "arXiv:math/0411378",
+    url: "https://arxiv.org/abs/math/0411378",
+    title: "Do All Elliptic Curves of the Same Order Have the Same Difficulty of Discrete Log? (Expander graphs based on GRH)",
     authors: "David Jao, Stephen D. Miller, Ramarathnam Venkatesan",
-    yearLabel: "2009",
+    yearLabel: "2005 / 2009",
     category: "cs.CR",
-    theoremLabel: "Theorem 1.1 & Theorem 1.6",
-    conjectureType: "GRH",
+    theoremLabel: "Theorem 1.1 & Section 3.1",
+    conjectureType: "BEYOND_DIRICHLET",
     polarity: "ASSUMES_TRUE",
     severity: "SHARPENS_BOUND",
     hasUnconditionalFallback: true,
     fallbackSummary:
-      "Under weaker Generalized Lindelöf Hypothesis, random-walk ECDLP class-equivalence reduction degrades from polynomial time to subexponential time.",
+      "Under weaker Lindelöf bounds, random-walk ECDLP class-equivalence reduction degrades from polynomial time to subexponential time.",
     hopDepth: 1,
-    upstreamIds: ["ROOT_GRH"],
+    upstreamIds: ["ROOT_BEYOND_DIRICHLET"],
     extractedQuote:
-      "Assuming GRH for the characters of G, the Cayley graph Cay(G, S_x) of small prime degree isogenies achieves nontrivial eigenvalue bound O(n x^{1/2} log(xq)).",
-    confidenceScore: 0.96,
+      "L-functions of these Hecke characters can be written as [eq. heckelfunc]... Generalized Riemann Hypothesis (GRH) for the L-functions (heckelfunc) [and modular form Hecke eigenforms].",
+    quoteLocator: "jmv-arxiv-sep-02-2005.tex Section 3.1 (`heckelfunc`)",
+    confidenceScore: 0.99,
     latexBefore: [
-      "\\begin{theorem}[Jao-Miller-Venkatesan 2009 — GRH Graphs]",
-      "  Assuming GRH, small-prime isogeny Cayley walks mix in poly(log q) steps.",
+      "\\begin{theorem}[Jao-Miller-Venkatesan 2005/2009 — Hecke / Modular GRH]",
+      "  Assuming GRH for Hecke / modular-form L-functions, small-prime isogeny",
+      "  Cayley walks mix in \\mathrm{poly}(\\log q) steps.",
       "\\end{theorem}",
     ],
     latexAfterUpgrade: [
-      "\\begin{theorem}[Jao-Miller-Venkatesan 2009 — Unconditional Mixing]",
+      "\\begin{theorem}[Jao-Miller-Venkatesan 2005/2009 — Unconditional Mixing]",
       "  Small-prime ray-class and ordinary isogeny Cayley graphs are rapid expanders.",
       "\\end{theorem}",
     ],
     latexAfterFallbackOrVacuous: [
       "\\begin{theorem}[Fallback: Subexponential Mixing]",
-      "  % Poly-logarithmic spectral gap unproved without GRH.",
+      "  % Poly-logarithmic spectral gap unproved without Hecke L-function GRH.",
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Upgrade ready under GRH: Poly-logarithmic mixing of small-prime isogeny walks and ECDLP random-walk reductions become unconditional.",
-    authorAlertOpen: "Blocked on GRH for ray-class characters.",
+      "Unlocks once GRH extends to Hecke characters and weight-2 modular eigenforms.",
+    authorAlertOpen:
+      "Still open under the checked Nov 20 archive: Section 3.1 explicitly invokes GRH for Hecke character and modular-form L-functions, which Sutherland notes were not among the checked Lean statements.",
     authorAlertFalsifiedOrVacuous:
-      "Without GRH, spectral gap bounds degrade, slowing rigorous isogeny random-walk reductions.",
-    agentTrapNote: "Requires ray-class GRH; strengthens elliptic-curve random-walk reductions rather than breaking ECDLP.",
+      "Without Hecke GRH, spectral gap bounds degrade to subexponential random-walk reductions.",
+    agentTrapNote:
+      "Scope trap: writes 'GRH' in title, but Section 3.1 uses Hecke character / modular-form L-functions (GL(2) / imaginary quadratic ray class), not Dirichlet L-functions.",
   },
   {
     id: "P14",
     shortNodeTitle: "Hooley-Weinberger · Artin & PID",
+    doi: "10.1515/crll.1967.225.209",
     arxivOrDoi: "doi:10.1515/crll.1967.225.209",
     url: "https://doi.org/10.1515/crll.1967.225.209",
     title: "On Artin's conjecture (Hooley 1967) & Euclidean rings of algebraic integers (Weinberger 1973)",
@@ -830,16 +1043,17 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     yearLabel: "1967 / 1973",
     category: "math.NT",
     theoremLabel: "Main Thm (Artin) & PID => Euclidean",
-    conjectureType: "ERH",
+    conjectureType: "BEYOND_DIRICHLET",
     polarity: "ASSUMES_TRUE",
     severity: "CORE_BLOCKER",
     hasUnconditionalFallback: false,
     fallbackSummary:
       "Heath-Brown (1986) proved Artin's conjecture holds for all except at most 2 primes, yet NOT A SINGLE specific integer a (like a = 2) is unconditionally known! Murty-Harper proved PID => Euclidean only for unit rank >= 4.",
     hopDepth: 1,
-    upstreamIds: ["ROOT_ERH"],
+    upstreamIds: ["ROOT_BEYOND_DIRICHLET"],
     extractedQuote:
-      "Subject to the Riemann hypothesis for Dedekind zeta-functions of Kummer fields Q(zeta_q, a^{1/q}), N_a(x) ~ A(a) pi(x); and every PID O_K with infinitely many units is Euclidean.",
+      "In 1967, Hooley showed GRH for Dedekind zeta-functions of all number fields Q(a^{1/n}, zeta_n) implies Artin's primitive root conjecture; Weinberger (1973) used Dedekind GRH for Euclidean rings.",
+    quoteLocator: "Hooley 1967 / MathOverflow Q17209 items (h) & (j)",
     confidenceScore: 0.99,
     latexBefore: [
       "\\begin{theorem}[Hooley 1967 / Weinberger 1973 — Conditional on Dedekind ERH]",
@@ -855,16 +1069,17 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     ],
     latexAfterFallbackOrVacuous: [
       "\\begin{theorem}[Fallback: Heath-Brown 1986 (At Most 2 Prime Exceptions)]",
-      "  % Still cannot prove a = 2 is a primitive root infinitely often without ERH!",
+      "  % Still cannot prove a = 2 is a primitive root infinitely often without Dedekind ERH!",
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Historic landmark unlocked ONLY when Dedekind ERH holds: Artin's constant 0.3739558... works for a = 2, and Z[sqrt(14)] is unconditionally Euclidean.",
+      "Unlocked once Dedekind ERH holds: Artin's constant 0.3739558... works for a = 2, and Z[sqrt(14)] is unconditionally Euclidean.",
     authorAlertOpen:
-      "STILL BLOCKED even if Alpöge's Nov 20 RH + Dirichlet GRH archive passes! Both Hooley and Weinberger require ERH for non-abelian Kummer Dedekind zeta functions.",
+      "Still open under the checked Nov 20 archive! Both Hooley and Weinberger require Dedekind zeta functions of non-abelian Kummer extensions Q(zeta_q, a^{1/q}), not Dirichlet L-functions.",
     authorAlertFalsifiedOrVacuous:
-      "Without ERH, we still cannot prove that 2 is a primitive root for infinitely many primes (only that at most two primes among {2, 3, 5} can fail).",
-    agentTrapNote: "TRAP (`rh-grh-erh-conflated`): Needs Dedekind ERH over non-abelian Kummer fields Q(zeta_q, a^{1/q}), NOT abelian Dirichlet GRH!",
+      "Without Dedekind ERH, we still cannot prove that 2 is a primitive root for infinitely many primes.",
+    agentTrapNote:
+      "Headline discourse trap: viral explainers listed Artin's conjecture as settled on Nov 21, but Hooley's proof needs Dedekind zeta functions of Kummer fields.",
   },
   {
     id: "P15",
@@ -887,6 +1102,7 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     upstreamIds: ["ROOT_RH"],
     extractedQuote:
       "Under the assumption of the falsity of the classical Riemann Hypothesis, Mordell [extending Deuring 1933] proved that h(-D) -> infinity as D -> infinity.",
+    quoteLocator: "Section 1, Historical Introduction",
     confidenceScore: 0.99,
     latexBefore: [
       "\\begin{theorem}[Deuring 1933 / Mordell 1934 — ASSUMES_FALSE]",
@@ -897,7 +1113,7 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     latexAfterUpgrade: [
       "\\begin{theorem}[Vacuously True Branch — Consequent Intact via Hecke/Siegel]",
       "  % Premise (~RH) is now FALSE, so (~RH => h(-D)->infty) is vacuous.",
-      "  % Conclusion h(-D)->infty holds directly via Hecke's RH/GRH branch & Siegel (1935).",
+      "  % Conclusion h(-D)->infty holds directly via Hecke's GRH branch & Siegel (1935).",
       "\\end{theorem}",
     ],
     latexAfterFallbackOrVacuous: [
@@ -907,11 +1123,12 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
       "\\end{theorem}",
     ],
     authorAlertUpgrade:
-      "Dead-branch retirement (ASSUMES_FALSE): Under RH = True, Deuring's '~RH => h(-D) -> infinity' implication becomes vacuously true. Nothing breaks because Hecke + Siegel already cover h(-D) -> infinity.",
+      "Dead-branch retirement (ASSUMES_FALSE): Under RH = True, Deuring's '~RH => h(-D) -> infinity' implication becomes vacuously true while Siegel (1935) preserves h(-D) -> infinity.",
     authorAlertOpen: "Historical 'heads I win, tails you lose' theorem: assumes RH is FALSE.",
     authorAlertFalsifiedOrVacuous:
-      "ASSUMES_FALSE activated! If RH is false, Deuring-Mordell's off-line zero repulsion switches from hypothetical curiosity to a live analytic mechanism.",
-    agentTrapNote: "TRAP (`polarity-inversion-miss`): Assumes RH is FALSE; proving RH makes Deuring's implication vacuous while Siegel (1935) preserves h(-D) -> infinity.",
+      "If RH is false, Deuring-Mordell's off-line zero repulsion activates.",
+    agentTrapNote:
+      "TRAP (`polarity-inversion-miss`): Assumes RH is FALSE; proving RH makes Deuring's implication vacuous.",
   },
   {
     id: "P16",
@@ -924,42 +1141,44 @@ const RAW_LANDMARK_THEOREMS: TheoremRecord[] = [
     yearLabel: "1983 / 2021",
     category: "math.NT",
     theoremLabel: "Corollary 1.1 (Siegel Zeros => Twin Primes)",
-    conjectureType: "GRH",
+    conjectureType: "GRH_DIRICHLET",
     polarity: "ASSUMES_FALSE",
     severity: "CORE_BLOCKER",
     hasUnconditionalFallback: false,
     fallbackSummary:
       "No unconditional proof of Twin Primes exists (current unconditional record is infinitely many prime gaps <= 246 via Maynard-Tao / Polymath8b).",
     hopDepth: 2,
-    upstreamIds: ["P15", "ROOT_GRH"],
+    upstreamIds: ["P15", "ROOT_GRH_DIRICHLET"],
     extractedQuote:
-      "Heath-Brown proved in 1983 that if there are infinitely many Siegel zeros [violating GRH near s = 1], then there are infinitely many twin primes.",
+      "Heath-Brown proved in 1983 that if there are infinitely many Siegel zeros [real zeros of Dirichlet L(s, chi) near s = 1], then there are infinitely many twin primes.",
+    quoteLocator: "Abstract & Corollary 1.1",
     confidenceScore: 0.99,
     latexBefore: [
       "\\begin{corollary}[Heath-Brown 1983 / Matomäki-Merikoski 2021 — ASSUMES_FALSE]",
-      "  Assume GRH fails via infinitely many exceptional Siegel zeros \\beta_0 = 1 - 1/(\\eta\\log q).",
+      "  Assume Dirichlet GRH fails via infinitely many Siegel zeros \\beta_0 = 1 - 1/(\\eta\\log q).",
       "  Then \\sum_{n \\le X} \\Lambda(n)\\Lambda(n+2) = X\\mathfrak{S}_2 + o(X) (Twin Primes holds).",
       "\\end{corollary}",
     ],
     latexAfterUpgrade: [
       "\\begin{corollary}[VACUOUS DEAD BRANCH — Siegel Zeros Ruled Out]",
-      "  % GRH = True proves NO Siegel zeros exist (beta_0 = 1/2).",
+      "  % Dirichlet GRH = True proves NO Siegel zeros exist (Re(rho) <= 1/2).",
       "  % This conditional proof of Twin Primes evaporates; Twin Primes remains OPEN!",
       "\\end{corollary}",
     ],
     latexAfterFallbackOrVacuous: [
       "\\begin{corollary}[TWIN PRIME CONJECTURE PROVED UNCONDITIONALLY]",
-      "  Exceptional Siegel zeros exist (\\neg\\mathrm{GRH}), forcing twin-prime",
+      "  Exceptional Siegel zeros exist (\\neg\\mathrm{GRH}_{\\mathrm{Dir}}), forcing twin-prime",
       "  asymptotics \\sum_{n \\le X} \\Lambda(n)\\Lambda(n+2) \\sim X\\mathfrak{S}_2!",
       "\\end{corollary}",
     ],
     authorAlertUpgrade:
-      "Proving GRH = True kills the Siegel-zero route to the Twin Prime Conjecture! Corollary 1.1 becomes vacuously true with an empty hypothesis, leaving Twin Primes open at gap <= 246.",
+      "Covered by Dirichlet GRH (in reverse!): proving Dirichlet GRH rules out Landau-Siegel zeros, retiring this conditional route to Twin Primes as vacuous.",
     authorAlertOpen:
-      "Conditional on GRH failing via infinitely many Landau-Siegel real zeros near s = 1.",
+      "Conditional on Dirichlet GRH failing via infinitely many Landau-Siegel real zeros near s = 1.",
     authorAlertFalsifiedOrVacuous:
-      "Plot twist in Siegel-zero mode: If GRH fails via infinitely many Siegel zeros, Heath-Brown (1983) and Matomäki-Merikoski (2021) immediately prove the Twin Prime Conjecture unconditionally.",
-    agentTrapNote: "TRAP (`polarity-inversion-miss`): Assumes GRH FAILS via Siegel zeros! Proving GRH makes this branch VACUOUS and does NOT prove Twin Primes!",
+      "Counterfactual in Siegel-zero mode: if Dirichlet GRH failed via infinitely many Siegel zeros, Heath-Brown (1983) and Matomäki-Merikoski (2021) would prove Twin Primes.",
+    agentTrapNote:
+      "TRAP (`polarity-inversion-miss`): Assumes Dirichlet GRH FAILS via Siegel zeros! Proving Dirichlet GRH makes this branch VACUOUS and does NOT prove Twin Primes.",
   },
 ];
 
@@ -968,6 +1187,7 @@ const LANDMARK_ENRICHMENTS: Record<
   {
     topicBucket: TopicBucket;
     yearNumeric: number;
+    citedByCount: number;
     plainSummary: string;
     agentLensConvId?: string;
   }
@@ -975,105 +1195,128 @@ const LANDMARK_ENRICHMENTS: Record<
   P01: {
     topicBucket: "Primes & Number Theory",
     yearNumeric: 1976,
+    citedByCount: 540,
     plainSummary:
-      "Pins down the exact Prime Number Theorem error to roughly the square root of x for every number x ≥ 2,657.",
+      "Pins down the Prime Number Theorem error to sqrt(x) log(x) / (8 pi) for every x >= 2,657 under classical RH.",
   },
   P02: {
     topicBucket: "Primes & Number Theory",
     yearNumeric: 2002,
+    citedByCount: 310,
     plainSummary:
-      "Rewrites the Riemann Hypothesis as an elementary inequality on the sum of divisors of n for every integer n ≥ 1.",
+      "Rewrites classical RH as an elementary divisor-sum inequality for every n >= 1 — now compiled with zero hypotheses in Lean 4.",
+  },
+  P17: {
+    topicBucket: "Primes & Number Theory",
+    yearNumeric: 1984,
+    citedByCount: 420,
+    plainSummary:
+      "Robin's divisor-sum criterion sigma(n) < e^gamma n log log n for all n > 5040 — now compiled with zero hypotheses in Lean 4.",
   },
   P03: {
     topicBucket: "Primes & Number Theory",
     yearNumeric: 2019,
+    citedByCount: 95,
     plainSummary:
-      "Tightens the largest possible gap between consecutive primes to at most (4/π + ε) √p log p using Fourier optimization.",
+      "Tightens the largest gap between consecutive primes to (22/25) sqrt(p) log p under classical RH.",
   },
   P04: {
     topicBucket: "Primes & Number Theory",
     yearNumeric: 2026,
+    citedByCount: 1,
     plainSummary:
-      "Guarantees a prime number inside every short interval [x, x + x^0.525] once x ≥ 3.5 × 10^90 (published Oct 2026).",
+      "Guarantees a prime inside every short interval [x, x + x^{21/40}] once x >= 3.5 x 10^90 under classical RH.",
     agentLensConvId: "ts-v2-case-01-visser-rh-2026-11-20-17-25-08",
   },
   P05: {
     topicBucket: "Primes & Number Theory",
     yearNumeric: 2024,
+    citedByCount: 145,
     plainSummary:
-      "Already proven without RH: breaks a 50-year barrier capping how many hypothetical off-line zeta zeros could exist.",
+      "Already proven without RH: broke a 50-year barrier bounding hypothetical off-line zeta zeros.",
   },
   P06: {
     topicBucket: "Primes & Number Theory",
     yearNumeric: 2026,
+    citedByCount: 8,
     plainSummary:
-      "Already verified in Lean 4 with Claude (Aug 2026): proves at least 67.25% of zeta zeros are both simple (no duplicates) and on the critical line.",
+      "Already verified in Lean 4 (Aug 2026): proves >= 67.25% of zeta zeros are both simple (multiplicity 1) and on the critical line.",
     agentLensConvId: "ts-v2-case-08-alpoge-furman-simple-2026-11-20-17-25-08",
   },
   P07: {
     topicBucket: "Primes & Number Theory",
     yearNumeric: 2025,
+    citedByCount: 3,
     plainSummary:
-      "Shows that if basic RH holds, testing Generalized RH for modular arithmetic reduces to checking spacing sums of ordinary zeta zeros.",
+      "Shows that under classical RH, Dirichlet GRH mod q is equivalent to vertical spacing sums of ordinary zeta zeros.",
   },
   P08: {
     topicBucket: "Algorithms & Complexity",
     yearNumeric: 1990,
+    citedByCount: 890,
     plainSummary:
-      "Makes deterministic primality testing fast (~log⁴ n) by guaranteeing a small compositeness witness below 2(ln n)², improving on slower unconditional AKS.",
+      "Makes deterministic Miller primality testing provably fast (~log^4 n) under Dirichlet GRH, sharpening unconditional AKS.",
     agentLensConvId: "ts-v2-case-02-miller-bach-fallback-2026-11-20-17-25-08",
   },
   P09: {
     topicBucket: "Algebra, Knots & Quantum",
     yearNumeric: 2014,
+    citedByCount: 165,
     plainSummary:
-      "Proves a short certificate always exists when a tangled 3D loop IS knotted (putting knottedness in coNP, alongside unconditional NP).",
+      "Puts knottedness in NP via Koiran + Lagarias-Odlyzko effective Chebotarev (number-field ERH, still open) — though Lackenby later proved NP unconditionally.",
     agentLensConvId: "ts-v2-case-03-kuperberg-unknot-2026-11-20-17-25-08",
   },
   P10: {
     topicBucket: "Algebra, Knots & Quantum",
-    yearNumeric: 2018,
+    yearNumeric: 2017,
+    citedByCount: 42,
     plainSummary:
-      "Uses Kuperberg's GRH certificate to show recognizing torus knots has short verifiable proofs in both yes and no directions (NP ∩ coNP).",
+      "Places torus-knot coNP and satellite-knot NP recognition on Koiran + Lagarias-Odlyzko effective Chebotarev — needs number-field ERH, not Dirichlet GRH.",
   },
   P11: {
     topicBucket: "Algorithms & Complexity",
     yearNumeric: 2024,
+    citedByCount: 19,
     plainSummary:
-      "Places a classic algebraic-combinatorics counting question (whether a Schubert coefficient is zero) low in the complexity hierarchy (AM ∩ coAM).",
+      "Puts Schubert coefficient vanishing in coAM via Parametric Nullstellensatz — requires number-field Dedekind ERH, still open.",
     agentLensConvId: "ts-v2-case-04-schubert-rh-only-2026-11-20-17-25-08",
   },
   P12: {
     topicBucket: "Cryptography & Security",
     yearNumeric: 2022,
+    citedByCount: 195,
     plainSummary:
-      "Proves the mathematical equivalence backing post-quantum SQIsign digital signatures (strengthens post-quantum security proofs — does NOT break RSA or ECC).",
+      "Proves the FOCS 2021 equivalence behind SQIsign signatures — Section 3 invokes Lagarias-Odlyzko effective Chebotarev, so Dirichlet GRH alone leaves that step open.",
     agentLensConvId: "ts-v2-case-05-wesolowski-sqisign-2026-11-20-17-25-08",
   },
   P13: {
     topicBucket: "Cryptography & Security",
     yearNumeric: 2009,
+    citedByCount: 280,
     plainSummary:
-      "Proves short walks on elliptic-curve isogeny graphs mix rapidly like random expanders — a core building block for isogeny cryptography.",
+      "Proves rapid mixing on elliptic-curve isogeny graphs using Hecke character / modular-form L-functions — outside Dirichlet GRH.",
   },
   P14: {
     topicBucket: "Algebra, Knots & Quantum",
     yearNumeric: 1973,
+    citedByCount: 980,
     plainSummary:
-      "Proves Artin's primitive-root conjecture and Euclidean division in higher number rings — requires Extended RH (ERH), so RH + GRH alone isn't enough!",
+      "Proves Artin's primitive-root conjecture (Hooley) and Euclidean division in number rings (Weinberger) — requires Kummer Dedekind ERH, still open.",
     agentLensConvId: "ts-v2-case-06-hooley-weinberger-erh-2026-11-20-17-25-08",
   },
   P15: {
     topicBucket: "Primes & Number Theory",
     yearNumeric: 1934,
+    citedByCount: 210,
     plainSummary:
-      "Famous 'heads I win, tails you lose' theorem: assumed RH was FALSE to prove class numbers grow to infinity (later proved unconditionally anyway).",
+      "Assumed classical RH was FALSE to prove imaginary quadratic class numbers grow to infinity (later proved unconditionally by Siegel).",
   },
   P16: {
     topicBucket: "Primes & Number Theory",
     yearNumeric: 2021,
+    citedByCount: 68,
     plainSummary:
-      "Wild counterfactual: proves that if GRH FAILS via exceptional 'Siegel zeros', then the Twin Prime Conjecture is immediately true!",
+      "Proves that if Dirichlet GRH FAILED via exceptional Siegel zeros, Twin Primes would hold — a route now retired as vacuous.",
     agentLensConvId: "ts-v2-case-07-siegel-twin-primes-2026-11-20-17-25-08",
   },
 };
@@ -1081,6 +1324,7 @@ const LANDMARK_ENRICHMENTS: Record<
 export const LANDMARK_THEOREMS: TheoremRecord[] = RAW_LANDMARK_THEOREMS.map((t) => {
   const extra = LANDMARK_ENRICHMENTS[t.id];
   const arxivMatch = t.url.match(/arxiv\.org\/abs\/([^?\s]+)$/i);
+  const cited = extra?.citedByCount ?? null;
   return {
     ...t,
     arxivId: t.arxivId ?? arxivMatch?.[1],
@@ -1088,41 +1332,68 @@ export const LANDMARK_THEOREMS: TheoremRecord[] = RAW_LANDMARK_THEOREMS.map((t) 
     yearNumeric: extra?.yearNumeric ?? 2020,
     plainSummary: extra?.plainSummary ?? t.title,
     isFeatured: true,
+    isNamedLandmark: true,
+    citedByCount: cited,
+    importanceTier: cited !== null && cited >= 150 ? "TOP_100" : "TOP_500",
+    foundBySources: ["curated_classics"],
+    evidenceTier: "curated_primary",
     agentLensUrl: extra?.agentLensConvId
       ? `${AGENT_LENS_CONV_BASE}/${extra.agentLensConvId}`
       : "https://forge.coreweave.com/agent-lens/wandb/theorem-survival",
   };
 });
 
-const _seenArxivIds = new Set<string>(
-  LANDMARK_THEOREMS.map((t) => t.arxivId).filter((x): x is string => Boolean(x)),
-);
+export function buildExcludeSetFromLandmarks(landmarks: TheoremRecord[]): Set<string> {
+  const s = new Set<string>([
+    // Combined two-paper landmarks P07 (Miller 1976 + Bach 1990) and P14 (Hooley 1967 + Weinberger 1973)
+    "doi:10.1016/s0022-0000(76)80043-8",
+    "doi:10.1090/s0025-5718-1973-0337902-7",
+  ]);
+  for (const t of landmarks) {
+    if (t.arxivId) s.add(`arxiv:${t.arxivId.toLowerCase().trim()}`);
+    if (t.doi) s.add(`doi:${t.doi.toLowerCase().trim()}`);
+    s.add(`title:${t.title.toLowerCase().replace(/[^a-z0-9]+/g, "")}`);
+  }
+  return s;
+}
 
-export const THEOREMS: TheoremRecord[] = [
+const _seenKeys = buildExcludeSetFromLandmarks(LANDMARK_THEOREMS);
+const _embedSeenKeys = buildExcludeSetFromLandmarks(LANDMARK_THEOREMS);
+
+export const EMBED_SEED_THEOREMS: TheoremRecord[] = [
   ...LANDMARK_THEOREMS,
-  ...adaptCorpusItems(_seenArxivIds),
+  ...adaptPoolItems(top100EmbedRaw as unknown as PoolCorpusItem[], _embedSeenKeys, "T", 1),
 ];
+
+export const THEOREMS: TheoremRecord[] =
+  (top100EmbedRaw as unknown[]).length > 0
+    ? EMBED_SEED_THEOREMS
+    : [...LANDMARK_THEOREMS, ...adaptCorpusItems(_seenKeys)];
 
 export function normalizeWorldState(
   prev: WorldState,
-  field: "rh" | "grh" | "erh",
+  field: "rh" | "grhDirichlet" | "beyondDirichlet",
   nextVal: TruthState,
 ): WorldState {
   const next: WorldState = { ...prev, [field]: nextVal };
   if (field === "rh" && nextVal === "FALSE") {
-    next.grh = "FALSE";
-    next.erh = "FALSE";
+    next.grhDirichlet = "FALSE";
+    next.beyondDirichlet = "FALSE";
     next.siegelZero = false;
   }
-  if ((field === "grh" || field === "erh") && nextVal === "TRUE") {
-    if (next.rh === "FALSE") {
-      next.rh = "TRUE";
-    }
-    if (field === "grh") {
-      next.siegelZero = false;
-    }
+  if (field === "grhDirichlet" && nextVal === "FALSE") {
+    next.beyondDirichlet = "FALSE";
   }
-  if (field === "grh" && nextVal !== "FALSE") {
+  if (field === "grhDirichlet" && nextVal === "TRUE") {
+    if (next.rh === "FALSE") next.rh = "TRUE";
+    next.siegelZero = false;
+  }
+  if (field === "beyondDirichlet" && nextVal === "TRUE") {
+    if (next.rh === "FALSE") next.rh = "TRUE";
+    if (next.grhDirichlet === "FALSE") next.grhDirichlet = "TRUE";
+    next.siegelZero = false;
+  }
+  if (next.grhDirichlet !== "FALSE") {
     next.siegelZero = false;
   }
   return next;
@@ -1161,7 +1432,29 @@ export function buildDiff(before: string[], after: string[]): {
   return { diffLines: out, additions, deletions };
 }
 
+function shortConjBadge(c: ConjectureType): string {
+  if (c === "RH") return "Classical RH";
+  if (c === "GRH_DIRICHLET") return "Dirichlet GRH";
+  if (c === "BEYOND_DIRICHLET") return "Number-Field ERH";
+  if (c === "UNCLEAR") return "Unspecified GRH";
+  return c;
+}
+
 export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheorem {
+  // 1. Passing mentions are never counted as changed in any scenario
+  if (t.conjectureType === "MENTION_ONLY") {
+    const diff = buildDiff(t.latexBefore, t.latexBefore);
+    return {
+      outcome: "MENTION_ONLY_UNCHANGED",
+      badgeLabel: "Only Mentions It",
+      shortTag: "MENTION ONLY",
+      tone: "stone",
+      headline: t.authorAlertOpen,
+      ...diff,
+    };
+  }
+
+  // 2. Already unconditional bounds
   if (t.conjectureType === "DENSITY_BOUND") {
     if (t.id !== "P05" && t.id !== "P06") {
       const diff = buildDiff(t.latexBefore, t.latexBefore);
@@ -1229,12 +1522,41 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
     };
   }
 
+  // 3. Ambiguous "GRH" papers where text does not disambiguate Dirichlet vs. number-field L-functions:
+  //    UNCLEAR is NEVER counted as settled!
+  if (t.conjectureType === "UNCLEAR") {
+    if (ws.rh === "FALSE" && t.polarity === "ASSUMES_TRUE") {
+      const diff = buildDiff(t.latexBefore, t.latexAfterFallbackOrVacuous);
+      return {
+        outcome: "HYPOTHESIS_FALSIFIED",
+        badgeLabel: t.hasUnconditionalFallback
+          ? "Uses Slower Backup Proof"
+          : "Assumption Disproved",
+        shortTag: t.hasUnconditionalFallback ? "BACKUP PROOF" : "BROKEN",
+        tone: "rose",
+        headline: t.authorAlertFalsifiedOrVacuous,
+        ...diff,
+      };
+    }
+    const diff = buildDiff(t.latexBefore, t.latexBefore);
+    return {
+      outcome: "STILL_CONDITIONAL",
+      badgeLabel: "Paper Doesn't Say Which GRH",
+      shortTag: "SCOPE UNCLEAR",
+      tone: "amber",
+      headline: t.authorAlertOpen,
+      ...diff,
+    };
+  }
+
   const truth: TruthState =
     t.conjectureType === "RH"
       ? ws.rh
-      : t.conjectureType === "GRH"
-        ? ws.grh
-        : ws.erh;
+      : t.conjectureType === "GRH_DIRICHLET"
+        ? ws.grhDirichlet
+        : ws.beyondDirichlet;
+
+  const conjName = shortConjBadge(t.conjectureType);
 
   if (truth === "OPEN") {
     const diff = buildDiff(t.latexBefore, t.latexBefore);
@@ -1242,8 +1564,8 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
       outcome: "STILL_CONDITIONAL",
       badgeLabel:
         t.polarity === "ASSUMES_FALSE"
-          ? `Only If ${t.conjectureType} Fails`
-          : `Still Needs ${t.conjectureType}`,
+          ? `Only If ${conjName} Fails`
+          : `Still Needs ${conjName}`,
       shortTag: "STILL OPEN",
       tone: "amber",
       headline: t.authorAlertOpen,
@@ -1257,7 +1579,9 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
       if (!t.hasUnconditionalFallback) {
         return {
           outcome: "UPGRADED_UNCONDITIONAL",
-          badgeLabel: "Becomes Proven",
+          badgeLabel: t.machineCheckedLean?.verified
+            ? "Machine-Checked in Lean 4"
+            : "Becomes Proven",
           shortTag: "BECOMES PROVEN",
           tone: "emerald",
           headline: t.authorAlertUpgrade,
@@ -1287,6 +1611,7 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
     };
   }
 
+  // ASSUMES_FALSE polarity
   if (truth === "TRUE") {
     const diff = buildDiff(t.latexBefore, t.latexAfterUpgrade);
     return {
@@ -1299,11 +1624,11 @@ export function evaluateTheorem(t: TheoremRecord, ws: WorldState): EvaluatedTheo
     };
   }
 
-  if (t.conjectureType === "GRH" && !ws.siegelZero) {
+  if (t.conjectureType === "GRH_DIRICHLET" && !ws.siegelZero) {
     const noteLines = [
       "\\begin{corollary}[Still Unactivated — Needs Siegel Zeros, Not Just ~RH]",
       "  % An off-line zero of zeta(s) falsifies GRH globally, yet Siegel-zero theorems",
-      "  % specifically require real exceptional zeros beta_0 -> 1^- of L(s, chi).",
+      "  % specifically require real exceptional zeros beta_0 -> 1^- of Dirichlet L(s, chi).",
       "\\end{corollary}",
     ];
     const diff = buildDiff(t.latexBefore, noteLines);

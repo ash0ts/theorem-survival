@@ -6,7 +6,26 @@ import fs from "node:fs";
 import path from "node:path";
 import { resolveForgeCredentials } from "../server/credentials";
 import { chatCompletion, parseJsonObject } from "../server/llm";
-import type { ClassifiedCorpusEntry } from "./classify-corpus";
+interface ClassifiedCorpusEntry {
+  arxivId: string;
+  url: string;
+  title: string;
+  authors: string;
+  year: number;
+  shortLabel: string;
+  primaryCategory: string;
+  topicBucket: string;
+  conjectureType: "RH" | "GRH" | "ERH" | "DENSITY_BOUND";
+  polarity: "ASSUMES_TRUE" | "ASSUMES_FALSE";
+  severity: "CORE_BLOCKER" | "SHARPENS_BOUND";
+  hasUnconditionalFallback: boolean;
+  alreadyUnconditional: boolean;
+  plainSummary: string;
+  plainImpactUpgrade: string;
+  plainFallbackNote: string;
+  extractedQuote: string;
+  conversationId: string;
+}
 
 function cleanLatexText(s: string): string {
   return s

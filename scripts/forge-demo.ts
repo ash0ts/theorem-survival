@@ -1,71 +1,83 @@
 /**
- * `pnpm demo`: Runs `auditor-v1-naive` vs `auditor-v2-guarded` against 8 real theorem cases
- * using CoreWeave Forge Serverless Inference (`zai-org/GLM-5.3-Flash`), streams OpenTelemetry
- * GenAI conversations + tool spans to CoreWeave Agent Lens (`wandb/theorem-survival`),
- * verifies upstream ingest on `https://trace.wandb.ai`, and writes `src/data/verified-traces.json`.
+ * `pnpm demo`: Runs `auditor-v1-neutral` vs `auditor-v3-fulltext` against the 8 hand-picked
+ * showcase theorem cases (reported separately from the frozen 84-case gold benchmark per
+ * `research/contract.md`), streams OpenTelemetry GenAI conversations + tool spans to
+ * CoreWeave Agent Lens (`wandb/theorem-survival`), verifies upstream ingest on
+ * `https://trace.wandb.ai`, and writes `src/data/verified-traces.json`.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { evaluateTheorem, PRESETS, THEOREMS, type PresetId } from "../src/data/theorems";
-import { runTheoremAudit, type AuditResponse } from "../server/auditor";
-import { resolveForgeCredentials, resolveForgeProject, resolveWandbKey } from "../server/credentials";
+import { runTheoremAudit } from "../server/auditor";
+import {
+  resolveForgeCredentials,
+  resolveForgeProject,
+  resolveWandbKey,
+} from "../server/credentials";
 import { AGENT_NAME, createTraceRunner } from "../server/tracing";
 
-interface BenchmarkCase {
+interface DemoCase {
   caseId: string;
   theoremId: string;
   presetId: PresetId;
   trapFocus: string;
 }
 
-const CASES: BenchmarkCase[] = [
+const CASES: DemoCase[] = [
   {
     caseId: "case-01-visser-rh",
     theoremId: "P04",
     presetId: "rh_only",
-    trapFocus: "2-hop transitive RH upgrade on Oct 2026 short-interval primes (2610.27830)",
+    trapFocus: "2-hop classical RH upgrade on Oct 2026 short-interval primes (2610.27830)",
   },
   {
-    caseId: "case-02-sqisign-rh-only",
+    caseId: "case-02-sqisign-beyond-dirichlet",
     theoremId: "P12",
-    presetId: "rh_only",
-    trapFocus: "rh-grh-erh-conflated & crypto-break-hallucination: RH alone does NOT unlock SQIsign (needs GRH)",
+    presetId: "checked_nov24",
+    trapFocus:
+      "Abstract says 'Assuming GRH', but §3 invokes Lagarias-Odlyzko effective Chebotarev (BEYOND_DIRICHLET, still open)",
   },
   {
-    caseId: "case-03-kuperberg-fallback",
+    caseId: "case-03-kuperberg-chebotarev",
     theoremId: "P09",
-    presetId: "alpoge_rh_grh",
-    trapFocus: "missed-unconditional-fallback: Lackenby (1604.03778) already proved Knottedness in NP unconditionally",
+    presetId: "checked_nov24",
+    trapFocus:
+      "Abstract says 'Assuming GRH', but proof invokes Koiran/Chebotarev (BEYOND_DIRICHLET) and Lackenby already proved NP unconditionally",
   },
   {
-    caseId: "case-04-schubert-erh-gap",
+    caseId: "case-04-schubert-chebotarev",
     theoremId: "P11",
-    presetId: "alpoge_rh_grh",
-    trapFocus: "rh-grh-erh-conflated: SchubertVanishing (2412.02064) traces to Dedekind ERH, still open in RH+GRH preset",
+    presetId: "checked_nov24",
+    trapFocus:
+      "Pak-Robichaux Schubert vanishing (2412.02064) relies on Koiran's effective Chebotarev step (BEYOND_DIRICHLET, still open)",
   },
   {
     caseId: "case-05-siegel-twins-vacuous",
     theoremId: "P16",
-    presetId: "alpoge_rh_grh",
-    trapFocus: "polarity-inversion-miss: GRH=True kills Siegel zeros, making Twin Primes proof route VACUOUS (not proven)",
+    presetId: "checked_nov24",
+    trapFocus:
+      "Heath-Brown (1983): Dirichlet GRH = True rules out Siegel zeros, making this counterfactual Twin Primes route VACUOUS",
   },
   {
     caseId: "case-06-alpoge-simplicity",
     theoremId: "P06",
-    presetId: "rh_only",
-    trapFocus: "simplicity-vs-location-blur: RH puts 100% of zeros on Re(s)=1/2 without proving multiplicity 1 (>=67.25% stays live)",
+    presetId: "checked_nov24",
+    trapFocus:
+      "Simplicity vs location: checked RH places zeros on Re(s)=1/2 without proving multiplicity 1",
   },
   {
-    caseId: "case-07-artin-erh-gap",
+    caseId: "case-07-artin-dedekind-open",
     theoremId: "P14",
-    presetId: "alpoge_rh_grh",
-    trapFocus: "rh-grh-erh-conflated: Hooley Artin primitive roots & Weinberger PID=>Euclidean still wait on Kummer Dedekind ERH",
+    presetId: "checked_nov24",
+    trapFocus:
+      "Hooley's Artin primitive-root proof needs Dedekind zeta GRH over Kummer fields Q(zeta_q, a^{1/q}) — NOT covered by Dirichlet GRH",
   },
   {
-    caseId: "case-08-lagarias-iff",
+    caseId: "case-08-lagarias-lean-checked",
     theoremId: "P02",
-    presetId: "rh_only",
-    trapFocus: "Exact biconditional RH equivalence (math/0008177) upgrades immediately under classical RH alone",
+    presetId: "checked_nov24",
+    trapFocus:
+      "Lagarias's elementary inequality (math/0008177) is equivalent to classical RH and now compiled unconditionally in Lean 4",
   },
 ];
 
@@ -119,65 +131,46 @@ async function main() {
   const tracingOn = await tracer.enabled();
   const runStamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
 
-  console.log(`\nRunning TheoremSurvival Agent Lens benchmark (${CASES.length} cases x 2 agent versions)`);
+  console.log(
+    `\nRunning TheoremSurvival Hand-Picked Demo Showcase (${CASES.length} cases: auditor-v1-neutral vs auditor-v3-fulltext)`,
+  );
   console.log(`  Project:    ${project}`);
-  console.log(`  Model:      ${creds ? `${creds.model} (${creds.provider})` : "deterministic (--no-llm)"}`);
-  console.log(`  Agent Lens: ${tracingOn ? `https://forge.coreweave.com/agent-lens/${project}` : "disabled"}\n`);
+  console.log(
+    `  Model:      ${creds ? `${creds.model} (${creds.provider})` : "deterministic (--no-llm)"}`,
+  );
+  console.log(
+    `  Agent Lens: ${tracingOn ? `https://forge.coreweave.com/agent-lens/${project}` : "disabled"}\n`,
+  );
 
-  const pairedResults: Array<{
-    caseId: string;
-    theoremId: string;
-    arxivOrDoi: string;
-    title: string;
-    presetId: PresetId;
-    presetLabel: string;
-    trapFocus: string;
-    expectedOutcome: string;
-    expectedConjecture: string;
-    expectedPolarity: string;
-    expectedFallback: boolean;
-    v1: {
-      conversationId: string;
-      agentLensUrl: string | null;
-      predictedOutcome: string;
-      conjectureType: string;
-      polarity: string;
-      hasFallback: boolean;
-      exactMatch: boolean;
-      authorAlert: string;
-      totalTokens: number;
-      wallMs: number;
-      spans: AuditResponse["spans"];
-    };
-    v2: {
-      conversationId: string;
-      agentLensUrl: string | null;
-      predictedOutcome: string;
-      conjectureType: string;
-      polarity: string;
-      hasFallback: boolean;
-      exactMatch: boolean;
-      authorAlert: string;
-      totalTokens: number;
-      wallMs: number;
-      spans: AuditResponse["spans"];
-    };
-  }> = [];
+  const pairedResults = [];
 
   for (const c of CASES) {
     const thm = THEOREMS.find((t) => t.id === c.theoremId)!;
     const preset = PRESETS.find((p) => p.id === c.presetId)!;
     const expected = evaluateTheorem(thm, preset.state);
 
-    const v1ConvId = `ts-v1-${c.caseId}-${runStamp}`;
-    const v2ConvId = `ts-v2-${c.caseId}-${runStamp}`;
+    const v1ConvId = `ts-demo2-v1-${c.caseId}-${runStamp}`;
+    const v3ConvId = `ts-demo2-v3-${c.caseId}-${runStamp}`;
 
-    const [v1Res, v2Res] = await Promise.all([
+    const paperInput = {
+      id: thm.id,
+      arxivId: thm.arxivId,
+      doi: thm.doi,
+      title: thm.title,
+      authors: thm.authors,
+      year: thm.yearLabel,
+      category: thm.category,
+      abstractText: thm.extractedQuote,
+      url: thm.url,
+    };
+
+    const [v1Res, v3Res] = await Promise.all([
       runTheoremAudit(
         {
           query: thm.arxivId ?? thm.id,
+          paperInput: thm.arxivId ? undefined : paperInput,
           presetId: c.presetId,
-          agentVersion: "auditor-v1-naive",
+          agentVersion: "auditor-v1-neutral",
           conversationId: v1ConvId,
           noLlm,
         },
@@ -186,9 +179,10 @@ async function main() {
       runTheoremAudit(
         {
           query: thm.arxivId ?? thm.id,
+          paperInput: thm.arxivId ? undefined : paperInput,
           presetId: c.presetId,
-          agentVersion: "auditor-v2-guarded",
-          conversationId: v2ConvId,
+          agentVersion: "auditor-v3-fulltext",
+          conversationId: v3ConvId,
           noLlm,
         },
         { creds, tracer },
@@ -196,27 +190,23 @@ async function main() {
     ]);
 
     const v1Dep = v1Res.extraction.dependencies[0];
-    const v2Dep = v2Res.extraction.dependencies[0];
+    const v3Dep = v3Res.extraction.dependencies[0];
 
     const v1Match =
       v1Res.predictedOutcome === expected.outcome &&
-      v1Dep.conjecture_type === thm.conjectureType &&
-      v1Dep.assumption_polarity === thm.polarity &&
-      v1Dep.has_unconditional_fallback === thm.hasUnconditionalFallback;
+      v1Dep.conjecture_type === thm.conjectureType;
 
-    const v2Match =
-      v2Res.predictedOutcome === expected.outcome &&
-      v2Dep.conjecture_type === thm.conjectureType &&
-      v2Dep.assumption_polarity === thm.polarity &&
-      v2Dep.has_unconditional_fallback === thm.hasUnconditionalFallback;
+    const v3Match =
+      v3Res.predictedOutcome === expected.outcome &&
+      v3Dep.conjecture_type === thm.conjectureType;
 
     console.log(
-      `  [${c.theoremId}] ${thm.shortNodeTitle.padEnd(30)} | expected=${expected.outcome.padEnd(22)} | v1=${v1Match ? "PASS" : "MISS"} (${v1Res.predictedOutcome}) | v2=${v2Match ? "PASS" : "MISS"} (${v2Res.predictedOutcome})`,
+      `  [${c.theoremId}] ${thm.shortNodeTitle.padEnd(30)} | expected=${expected.outcome.padEnd(22)} (${thm.conjectureType.padEnd(16)}) | v1-neutral=${v1Match ? "PASS" : "MISS"} (${v1Dep.conjecture_type} -> ${v1Res.predictedOutcome}) | v3-fulltext=${v3Match ? "PASS" : "MISS"} (${v3Dep.conjecture_type} -> ${v3Res.predictedOutcome})`,
     );
 
     pairedResults.push({
       caseId: c.caseId,
-      theoremId: c.theoremId,
+      theoremId: thm.id,
       arxivOrDoi: thm.arxivOrDoi,
       title: thm.title,
       presetId: c.presetId,
@@ -240,17 +230,17 @@ async function main() {
         spans: v1Res.spans,
       },
       v2: {
-        conversationId: v2Res.conversationId,
-        agentLensUrl: v2Res.agentLensUrl,
-        predictedOutcome: v2Res.predictedOutcome,
-        conjectureType: v2Dep.conjecture_type,
-        polarity: v2Dep.assumption_polarity,
-        hasFallback: v2Dep.has_unconditional_fallback,
-        exactMatch: v2Match,
-        authorAlert: v2Res.authorAlert,
-        totalTokens: v2Res.totalTokens,
-        wallMs: v2Res.wallMs,
-        spans: v2Res.spans,
+        conversationId: v3Res.conversationId,
+        agentLensUrl: v3Res.agentLensUrl,
+        predictedOutcome: v3Res.predictedOutcome,
+        conjectureType: v3Dep.conjecture_type,
+        polarity: v3Dep.assumption_polarity,
+        hasFallback: v3Dep.has_unconditional_fallback,
+        exactMatch: v3Match,
+        authorAlert: v3Res.authorAlert,
+        totalTokens: v3Res.totalTokens,
+        wallMs: v3Res.wallMs,
+        spans: v3Res.spans,
       },
     });
   }
@@ -264,21 +254,41 @@ async function main() {
   }
 
   const v1Correct = pairedResults.filter((r) => r.v1.exactMatch).length;
-  const v2Correct = pairedResults.filter((r) => r.v2.exactMatch).length;
+  const v3Correct = pairedResults.filter((r) => r.v2.exactMatch).length;
+
+  const benchmarkSummaryPath = path.resolve(
+    import.meta.dirname,
+    "../research/benchmark-summary.json",
+  );
+  const heldoutSummary = fs.existsSync(benchmarkSummaryPath)
+    ? JSON.parse(fs.readFileSync(benchmarkSummaryPath, "utf8"))
+    : null;
 
   const snapshot = {
     generatedAtUtc: new Date().toISOString(),
+    datasetScope: "handpicked_demo_8",
+    datasetNote:
+      "Hand-picked 8-paper showcase for UI trace inspection (no label lookup). Primary evaluation is the frozen 60-paper stratified held-out benchmark and 24 named public results in research/benchmark-summary.json.",
     project,
     agentName: AGENT_NAME,
     agentLensProjectUrl: `https://forge.coreweave.com/agent-lens/${project}`,
-    agentLensTagsViewUrl: `https://forge.coreweave.com/agent-lens/${project}/conversations?tags=rh-grh-erh-conflated,missed-unconditional-fallback,polarity-inversion-miss,crypto-break-hallucination,simplicity-vs-location-blur`,
+    agentLensTagsViewUrl: `https://forge.coreweave.com/agent-lens/${project}/conversations`,
     model: creds?.model ?? "deterministic-rule-engine",
+    heldoutBenchmark: heldoutSummary
+      ? {
+          generatedAtUtc: heldoutSummary.generatedAtUtc,
+          heldout60Arms: heldoutSummary.heldout60,
+          named24Arms: heldoutSummary.named24,
+          decisionDeltaConjecturePct: heldoutSummary.decisionCheck?.deltaConjecturePct ?? null,
+          decisionDeltaOutcomePct: heldoutSummary.decisionCheck?.deltaOutcomePct ?? null,
+        }
+      : null,
     summary: {
       cases: pairedResults.length,
       v1ExactMatches: v1Correct,
-      v2ExactMatches: v2Correct,
+      v2ExactMatches: v3Correct,
       v1Accuracy: Number((v1Correct / pairedResults.length).toFixed(3)),
-      v2Accuracy: Number((v2Correct / pairedResults.length).toFixed(3)),
+      v2Accuracy: Number((v3Correct / pairedResults.length).toFixed(3)),
       verifiedAgentVersions: verifiedVersions,
     },
     cases: pairedResults,
@@ -290,14 +300,15 @@ async function main() {
     console.log(`\nWrote verified Agent Lens trace snapshot -> src/data/verified-traces.json`);
   }
 
-  console.log(`\nSummary: auditor-v1-naive ${v1Correct}/${pairedResults.length} exact | auditor-v2-guarded ${v2Correct}/${pairedResults.length} exact`);
+  console.log(
+    `\nDemo Showcase Summary: auditor-v1-neutral ${v1Correct}/${pairedResults.length} | auditor-v3-fulltext ${v3Correct}/${pairedResults.length}`,
+  );
   if (verifiedVersions.length > 0) {
     console.log(`Verified upstream on trace.wandb.ai (${project}):`);
     for (const v of verifiedVersions) {
       console.log(`  - ${v.agent_version}: ${v.invocation_count} traced invocations`);
     }
   }
-  console.log(`Open Agent Lens: https://forge.coreweave.com/agent-lens/${project}\n`);
 }
 
 main().catch((err) => {

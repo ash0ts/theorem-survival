@@ -1,0 +1,1089 @@
+{
+  "generatedAtUtc": "2026-11-24T11:46:13.618Z",
+  "project": "wandb/theorem-survival",
+  "agentName": "theorem-survival-auditor",
+  "trialsPerCase": 3,
+  "decisionRuleEvaluation": {
+    "v3FullTextConjecturePct": 85.6,
+    "v1RulesGlmConjecturePct": 83.3,
+    "deltaConjecturePoints": 2.3,
+    "v3FullTextOutcomePct": 85,
+    "v1RulesGlmOutcomePct": 80.6,
+    "deltaOutcomePoints": 4.4,
+    "beats5PointThresholdOnConjecture": false,
+    "beats5PointThresholdOnOutcome": false
+  },
+  "spendLedger": {
+    "updatedAtUtc": "2026-11-24T11:46:12.778Z",
+    "totalCalls": 3024,
+    "totalInputTokens": 5523738,
+    "totalOutputTokens": 468795,
+    "totalEstimatedUsd": 1.952076,
+    "byModel": {
+      "zai-org/GLM-5.3-Flash": {
+        "calls": 2016,
+        "inputTokens": 4296444,
+        "outputTokens": 316197,
+        "estimatedUsd": 0.834192
+      },
+      "moonshotai/Kimi-K2.6": {
+        "calls": 1008,
+        "inputTokens": 1227294,
+        "outputTokens": 152598,
+        "estimatedUsd": 1.117876
+      }
+    }
+  },
+  "upstreamAgentVersions": [
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 383585,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:45:39.193000",
+      "last_seen": "2026-11-24T11:46:10.408000",
+      "total_cost_usd": null,
+      "agent_version": "bench-v3-fulltext-glm"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 396244,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:45:04.966000",
+      "last_seen": "2026-11-24T11:45:37.484000",
+      "total_cost_usd": null,
+      "agent_version": "bench-v2-abstract-glm"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 577791,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:43:49.953000",
+      "last_seen": "2026-11-24T11:45:00.256000",
+      "total_cost_usd": null,
+      "agent_version": "bench-v1-rules-kimi"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 413853,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:43:14.047000",
+      "last_seen": "2026-11-24T11:43:47.939000",
+      "total_cost_usd": null,
+      "agent_version": "bench-v1-rules-glm"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 773483,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:41:35.464000",
+      "last_seen": "2026-11-24T11:43:10.953000",
+      "total_cost_usd": null,
+      "agent_version": "bench-v1-neutral-kimi"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 416397,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:40:59.295000",
+      "last_seen": "2026-11-24T11:41:33.533000",
+      "total_cost_usd": null,
+      "agent_version": "bench-v1-neutral-glm"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 267822,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:28:33.418000",
+      "last_seen": "2026-11-24T11:28:55.191000",
+      "total_cost_usd": null,
+      "agent_version": "auditor-v3-fulltext"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 350484,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:28:02.410000",
+      "last_seen": "2026-11-24T11:28:29.662000",
+      "total_cost_usd": null,
+      "agent_version": "auditor-v2-abstract"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 346285,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:27:09.256000",
+      "last_seen": "2026-11-24T11:27:50.556000",
+      "total_cost_usd": null,
+      "agent_version": "auditor-v1-rules-kimi"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 286877,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:26:43.566000",
+      "last_seen": "2026-11-24T11:27:06.658000",
+      "total_cost_usd": null,
+      "agent_version": "auditor-v1-rules"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 314802,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:26:02.641000",
+      "last_seen": "2026-11-24T11:26:41.365000",
+      "total_cost_usd": null,
+      "agent_version": "auditor-v1-neutral-kimi"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 252,
+      "span_count": 252,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 326953,
+      "error_count": 0,
+      "first_seen": "2026-11-24T11:25:34.247000",
+      "last_seen": "2026-11-24T11:26:01.115000",
+      "total_cost_usd": null,
+      "agent_version": "auditor-v1-neutral"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 161,
+      "span_count": 161,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 236750,
+      "error_count": 0,
+      "first_seen": "2026-11-20T17:51:56.569000",
+      "last_seen": "2026-11-20T17:52:25.217000",
+      "total_cost_usd": null,
+      "agent_version": "auditor-v2-corpus"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 8,
+      "span_count": 8,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 57438,
+      "error_count": 0,
+      "first_seen": "2026-11-20T17:25:08.550000",
+      "last_seen": "2026-11-20T17:26:05.762000",
+      "total_cost_usd": null,
+      "agent_version": "auditor-v1-naive"
+    },
+    {
+      "project_id": "wandb/theorem-survival",
+      "agent_name": "theorem-survival-auditor",
+      "invocation_count": 8,
+      "span_count": 8,
+      "total_input_tokens": 0,
+      "total_output_tokens": 0,
+      "total_duration_ms": 10382,
+      "error_count": 0,
+      "first_seen": "2026-11-20T17:25:08.565000",
+      "last_seen": "2026-11-20T17:26:05.762000",
+      "total_cost_usd": null,
+      "agent_version": "auditor-v2-guarded"
+    }
+  ],
+  "heldout60": [
+    {
+      "configId": "v1-neutral-glm",
+      "label": "v1-neutral (GLM-5.3-Flash, abstract)",
+      "arm": "auditor-v1-neutral",
+      "model": "zai-org/GLM-5.3-Flash",
+      "agentVersionTag": "bench-v1-neutral-glm",
+      "denomPerTrial": 60,
+      "nonSettledPerTrial": 50,
+      "meanConjectureExact": 34.67,
+      "meanConjecturePct": 57.8,
+      "meanSettledBinary": 44.67,
+      "meanSettledBinaryPct": 74.4,
+      "meanFalseSettledClaims": 14.67,
+      "meanFalseSettledPct": 29.3,
+      "meanOutcomeMatch": 37.33,
+      "meanOutcomePct": 62.2,
+      "meanTupleExact": 20.67,
+      "totalParseErrorsAcross3Trials": 2,
+      "p50WallMs": 1288,
+      "p95WallMs": 2980,
+      "totalInputTokens": 101481,
+      "totalOutputTokens": 29603,
+      "totalEstimatedUsd": 0.033,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 60,
+          "conjectureExact": 34,
+          "settledBinaryMatch": 44,
+          "falseSettledClaims": 15,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 36,
+          "tupleExactMatch": 22,
+          "parseErrors": 1
+        },
+        {
+          "trial": 2,
+          "n": 60,
+          "conjectureExact": 34,
+          "settledBinaryMatch": 44,
+          "falseSettledClaims": 15,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 38,
+          "tupleExactMatch": 20,
+          "parseErrors": 1
+        },
+        {
+          "trial": 3,
+          "n": 60,
+          "conjectureExact": 36,
+          "settledBinaryMatch": 46,
+          "falseSettledClaims": 14,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 38,
+          "tupleExactMatch": 20,
+          "parseErrors": 0
+        }
+      ]
+    },
+    {
+      "configId": "v1-neutral-kimi",
+      "label": "v1-neutral (Kimi-K2.6, abstract)",
+      "arm": "auditor-v1-neutral",
+      "model": "moonshotai/Kimi-K2.6",
+      "agentVersionTag": "bench-v1-neutral-kimi",
+      "denomPerTrial": 60,
+      "nonSettledPerTrial": 50,
+      "meanConjectureExact": 23.33,
+      "meanConjecturePct": 38.9,
+      "meanSettledBinary": 40,
+      "meanSettledBinaryPct": 66.7,
+      "meanFalseSettledClaims": 20,
+      "meanFalseSettledPct": 40,
+      "meanOutcomeMatch": 29.67,
+      "meanOutcomePct": 49.4,
+      "meanTupleExact": 12,
+      "totalParseErrorsAcross3Trials": 0,
+      "p50WallMs": 1668,
+      "p95WallMs": 11844,
+      "totalInputTokens": 98556,
+      "totalOutputTokens": 25468,
+      "totalEstimatedUsd": 0.1228,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 60,
+          "conjectureExact": 26,
+          "settledBinaryMatch": 42,
+          "falseSettledClaims": 18,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 31,
+          "tupleExactMatch": 13,
+          "parseErrors": 0
+        },
+        {
+          "trial": 2,
+          "n": 60,
+          "conjectureExact": 23,
+          "settledBinaryMatch": 40,
+          "falseSettledClaims": 20,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 29,
+          "tupleExactMatch": 12,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 60,
+          "conjectureExact": 21,
+          "settledBinaryMatch": 38,
+          "falseSettledClaims": 22,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 29,
+          "tupleExactMatch": 11,
+          "parseErrors": 0
+        }
+      ]
+    },
+    {
+      "configId": "v1-rules-glm",
+      "label": "v1-rules (GLM-5.3-Flash, abstract + rules)",
+      "arm": "auditor-v1-rules",
+      "model": "zai-org/GLM-5.3-Flash",
+      "agentVersionTag": "bench-v1-rules-glm",
+      "denomPerTrial": 60,
+      "nonSettledPerTrial": 50,
+      "meanConjectureExact": 50,
+      "meanConjecturePct": 83.3,
+      "meanSettledBinary": 56.67,
+      "meanSettledBinaryPct": 94.4,
+      "meanFalseSettledClaims": 1.67,
+      "meanFalseSettledPct": 3.3,
+      "meanOutcomeMatch": 48.33,
+      "meanOutcomePct": 80.6,
+      "meanTupleExact": 41.67,
+      "totalParseErrorsAcross3Trials": 0,
+      "p50WallMs": 1356,
+      "p95WallMs": 3317,
+      "totalInputTokens": 325761,
+      "totalOutputTokens": 33699,
+      "totalEstimatedUsd": 0.0691,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 60,
+          "conjectureExact": 52,
+          "settledBinaryMatch": 58,
+          "falseSettledClaims": 0,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 50,
+          "tupleExactMatch": 44,
+          "parseErrors": 0
+        },
+        {
+          "trial": 2,
+          "n": 60,
+          "conjectureExact": 49,
+          "settledBinaryMatch": 56,
+          "falseSettledClaims": 3,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 47,
+          "tupleExactMatch": 40,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 60,
+          "conjectureExact": 49,
+          "settledBinaryMatch": 56,
+          "falseSettledClaims": 2,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 48,
+          "tupleExactMatch": 41,
+          "parseErrors": 0
+        }
+      ]
+    },
+    {
+      "configId": "v1-rules-kimi",
+      "label": "v1-rules (Kimi-K2.6, abstract + rules)",
+      "arm": "auditor-v1-rules",
+      "model": "moonshotai/Kimi-K2.6",
+      "agentVersionTag": "bench-v1-rules-kimi",
+      "denomPerTrial": 60,
+      "nonSettledPerTrial": 50,
+      "meanConjectureExact": 48.33,
+      "meanConjecturePct": 80.6,
+      "meanSettledBinary": 56,
+      "meanSettledBinaryPct": 93.3,
+      "meanFalseSettledClaims": 3,
+      "meanFalseSettledPct": 6,
+      "meanOutcomeMatch": 49,
+      "meanOutcomePct": 81.7,
+      "meanTupleExact": 40.33,
+      "totalParseErrorsAcross3Trials": 0,
+      "p50WallMs": 1464,
+      "p95WallMs": 4241,
+      "totalInputTokens": 319416,
+      "totalOutputTokens": 28570,
+      "totalEstimatedUsd": 0.2631,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 60,
+          "conjectureExact": 48,
+          "settledBinaryMatch": 56,
+          "falseSettledClaims": 3,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 47,
+          "tupleExactMatch": 39,
+          "parseErrors": 0
+        },
+        {
+          "trial": 2,
+          "n": 60,
+          "conjectureExact": 49,
+          "settledBinaryMatch": 56,
+          "falseSettledClaims": 3,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 51,
+          "tupleExactMatch": 42,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 60,
+          "conjectureExact": 48,
+          "settledBinaryMatch": 56,
+          "falseSettledClaims": 3,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 49,
+          "tupleExactMatch": 40,
+          "parseErrors": 0
+        }
+      ]
+    },
+    {
+      "configId": "v2-abstract-glm",
+      "label": "v2-abstract (GLM-5.3-Flash + abstract tools)",
+      "arm": "auditor-v2-abstract",
+      "model": "zai-org/GLM-5.3-Flash",
+      "agentVersionTag": "bench-v2-abstract-glm",
+      "denomPerTrial": 60,
+      "nonSettledPerTrial": 50,
+      "meanConjectureExact": 49,
+      "meanConjecturePct": 81.7,
+      "meanSettledBinary": 56.67,
+      "meanSettledBinaryPct": 94.4,
+      "meanFalseSettledClaims": 2,
+      "meanFalseSettledPct": 4,
+      "meanOutcomeMatch": 49.67,
+      "meanOutcomePct": 82.8,
+      "meanTupleExact": 44.67,
+      "totalParseErrorsAcross3Trials": 1,
+      "p50WallMs": 1307,
+      "p95WallMs": 3496,
+      "totalInputTokens": 323961,
+      "totalOutputTokens": 32080,
+      "totalEstimatedUsd": 0.0678,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 60,
+          "conjectureExact": 48,
+          "settledBinaryMatch": 56,
+          "falseSettledClaims": 2,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 49,
+          "tupleExactMatch": 45,
+          "parseErrors": 1
+        },
+        {
+          "trial": 2,
+          "n": 60,
+          "conjectureExact": 50,
+          "settledBinaryMatch": 57,
+          "falseSettledClaims": 2,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 50,
+          "tupleExactMatch": 45,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 60,
+          "conjectureExact": 49,
+          "settledBinaryMatch": 57,
+          "falseSettledClaims": 2,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 50,
+          "tupleExactMatch": 44,
+          "parseErrors": 0
+        }
+      ]
+    },
+    {
+      "configId": "v3-fulltext-glm",
+      "label": "v3-fulltext (GLM-5.3-Flash + full-text tools)",
+      "arm": "auditor-v3-fulltext",
+      "model": "zai-org/GLM-5.3-Flash",
+      "agentVersionTag": "bench-v3-fulltext-glm",
+      "denomPerTrial": 60,
+      "nonSettledPerTrial": 50,
+      "meanConjectureExact": 51.33,
+      "meanConjecturePct": 85.6,
+      "meanSettledBinary": 55,
+      "meanSettledBinaryPct": 91.7,
+      "meanFalseSettledClaims": 4,
+      "meanFalseSettledPct": 8,
+      "meanOutcomeMatch": 51,
+      "meanOutcomePct": 85,
+      "meanTupleExact": 47.33,
+      "totalParseErrorsAcross3Trials": 0,
+      "p50WallMs": 1388,
+      "p95WallMs": 2924,
+      "totalInputTokens": 774519,
+      "totalOutputTokens": 42336,
+      "totalEstimatedUsd": 0.1416,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 60,
+          "conjectureExact": 52,
+          "settledBinaryMatch": 56,
+          "falseSettledClaims": 3,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 52,
+          "tupleExactMatch": 47,
+          "parseErrors": 0
+        },
+        {
+          "trial": 2,
+          "n": 60,
+          "conjectureExact": 51,
+          "settledBinaryMatch": 55,
+          "falseSettledClaims": 4,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 50,
+          "tupleExactMatch": 47,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 60,
+          "conjectureExact": 51,
+          "settledBinaryMatch": 54,
+          "falseSettledClaims": 5,
+          "falseSettledDenom": 50,
+          "outcomeMatch": 51,
+          "tupleExactMatch": 48,
+          "parseErrors": 0
+        }
+      ]
+    }
+  ],
+  "named24": [
+    {
+      "configId": "v1-neutral-glm",
+      "label": "v1-neutral (GLM-5.3-Flash, abstract)",
+      "arm": "auditor-v1-neutral",
+      "model": "zai-org/GLM-5.3-Flash",
+      "agentVersionTag": "bench-v1-neutral-glm",
+      "denomPerTrial": 24,
+      "nonSettledPerTrial": 14,
+      "meanConjectureExact": 17.67,
+      "meanConjecturePct": 73.6,
+      "meanSettledBinary": 17.67,
+      "meanSettledBinaryPct": 73.6,
+      "meanFalseSettledClaims": 6.33,
+      "meanFalseSettledPct": 45.2,
+      "meanOutcomeMatch": 12,
+      "meanOutcomePct": 50,
+      "meanTupleExact": 7,
+      "totalParseErrorsAcross3Trials": 0,
+      "p50WallMs": 1662,
+      "p95WallMs": 5462,
+      "totalInputTokens": 31203,
+      "totalOutputTokens": 12665,
+      "totalEstimatedUsd": 0.0123,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 24,
+          "conjectureExact": 18,
+          "settledBinaryMatch": 18,
+          "falseSettledClaims": 6,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 13,
+          "tupleExactMatch": 7,
+          "parseErrors": 0
+        },
+        {
+          "trial": 2,
+          "n": 24,
+          "conjectureExact": 17,
+          "settledBinaryMatch": 17,
+          "falseSettledClaims": 7,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 12,
+          "tupleExactMatch": 6,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 24,
+          "conjectureExact": 18,
+          "settledBinaryMatch": 18,
+          "falseSettledClaims": 6,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 11,
+          "tupleExactMatch": 8,
+          "parseErrors": 0
+        }
+      ]
+    },
+    {
+      "configId": "v1-neutral-kimi",
+      "label": "v1-neutral (Kimi-K2.6, abstract)",
+      "arm": "auditor-v1-neutral",
+      "model": "moonshotai/Kimi-K2.6",
+      "agentVersionTag": "bench-v1-neutral-kimi",
+      "denomPerTrial": 24,
+      "nonSettledPerTrial": 14,
+      "meanConjectureExact": 16.67,
+      "meanConjecturePct": 69.4,
+      "meanSettledBinary": 17.67,
+      "meanSettledBinaryPct": 73.6,
+      "meanFalseSettledClaims": 6.33,
+      "meanFalseSettledPct": 45.2,
+      "meanOutcomeMatch": 17,
+      "meanOutcomePct": 70.8,
+      "meanTupleExact": 7,
+      "totalParseErrorsAcross3Trials": 0,
+      "p50WallMs": 1586,
+      "p95WallMs": 9678,
+      "totalInputTokens": 30117,
+      "totalOutputTokens": 10647,
+      "totalEstimatedUsd": 0.0447,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 24,
+          "conjectureExact": 17,
+          "settledBinaryMatch": 18,
+          "falseSettledClaims": 6,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 18,
+          "tupleExactMatch": 8,
+          "parseErrors": 0
+        },
+        {
+          "trial": 2,
+          "n": 24,
+          "conjectureExact": 17,
+          "settledBinaryMatch": 18,
+          "falseSettledClaims": 6,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 16,
+          "tupleExactMatch": 7,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 24,
+          "conjectureExact": 16,
+          "settledBinaryMatch": 17,
+          "falseSettledClaims": 7,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 17,
+          "tupleExactMatch": 6,
+          "parseErrors": 0
+        }
+      ]
+    },
+    {
+      "configId": "v1-rules-glm",
+      "label": "v1-rules (GLM-5.3-Flash, abstract + rules)",
+      "arm": "auditor-v1-rules",
+      "model": "zai-org/GLM-5.3-Flash",
+      "agentVersionTag": "bench-v1-rules-glm",
+      "denomPerTrial": 24,
+      "nonSettledPerTrial": 14,
+      "meanConjectureExact": 24,
+      "meanConjecturePct": 100,
+      "meanSettledBinary": 24,
+      "meanSettledBinaryPct": 100,
+      "meanFalseSettledClaims": 0,
+      "meanFalseSettledPct": 0,
+      "meanOutcomeMatch": 22.67,
+      "meanOutcomePct": 94.4,
+      "meanTupleExact": 20.67,
+      "totalParseErrorsAcross3Trials": 0,
+      "p50WallMs": 1737,
+      "p95WallMs": 3572,
+      "totalInputTokens": 120915,
+      "totalOutputTokens": 12818,
+      "totalEstimatedUsd": 0.0258,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 24,
+          "conjectureExact": 24,
+          "settledBinaryMatch": 24,
+          "falseSettledClaims": 0,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 22,
+          "tupleExactMatch": 18,
+          "parseErrors": 0
+        },
+        {
+          "trial": 2,
+          "n": 24,
+          "conjectureExact": 24,
+          "settledBinaryMatch": 24,
+          "falseSettledClaims": 0,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 22,
+          "tupleExactMatch": 22,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 24,
+          "conjectureExact": 24,
+          "settledBinaryMatch": 24,
+          "falseSettledClaims": 0,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 24,
+          "tupleExactMatch": 22,
+          "parseErrors": 0
+        }
+      ]
+    },
+    {
+      "configId": "v1-rules-kimi",
+      "label": "v1-rules (Kimi-K2.6, abstract + rules)",
+      "arm": "auditor-v1-rules",
+      "model": "moonshotai/Kimi-K2.6",
+      "agentVersionTag": "bench-v1-rules-kimi",
+      "denomPerTrial": 24,
+      "nonSettledPerTrial": 14,
+      "meanConjectureExact": 23,
+      "meanConjecturePct": 95.8,
+      "meanSettledBinary": 23,
+      "meanSettledBinaryPct": 95.8,
+      "meanFalseSettledClaims": 1,
+      "meanFalseSettledPct": 7.1,
+      "meanOutcomeMatch": 21.33,
+      "meanOutcomePct": 88.9,
+      "meanTupleExact": 19.67,
+      "totalParseErrorsAcross3Trials": 0,
+      "p50WallMs": 1954,
+      "p95WallMs": 10647,
+      "totalInputTokens": 118461,
+      "totalOutputTokens": 11407,
+      "totalEstimatedUsd": 0.0996,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 24,
+          "conjectureExact": 23,
+          "settledBinaryMatch": 23,
+          "falseSettledClaims": 1,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 21,
+          "tupleExactMatch": 19,
+          "parseErrors": 0
+        },
+        {
+          "trial": 2,
+          "n": 24,
+          "conjectureExact": 23,
+          "settledBinaryMatch": 23,
+          "falseSettledClaims": 1,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 21,
+          "tupleExactMatch": 20,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 24,
+          "conjectureExact": 23,
+          "settledBinaryMatch": 23,
+          "falseSettledClaims": 1,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 22,
+          "tupleExactMatch": 20,
+          "parseErrors": 0
+        }
+      ]
+    },
+    {
+      "configId": "v2-abstract-glm",
+      "label": "v2-abstract (GLM-5.3-Flash + abstract tools)",
+      "arm": "auditor-v2-abstract",
+      "model": "zai-org/GLM-5.3-Flash",
+      "agentVersionTag": "bench-v2-abstract-glm",
+      "denomPerTrial": 24,
+      "nonSettledPerTrial": 14,
+      "meanConjectureExact": 24,
+      "meanConjecturePct": 100,
+      "meanSettledBinary": 24,
+      "meanSettledBinaryPct": 100,
+      "meanFalseSettledClaims": 0,
+      "meanFalseSettledPct": 0,
+      "meanOutcomeMatch": 22,
+      "meanOutcomePct": 91.7,
+      "meanTupleExact": 20.67,
+      "totalParseErrorsAcross3Trials": 0,
+      "p50WallMs": 1246,
+      "p95WallMs": 2271,
+      "totalInputTokens": 120195,
+      "totalOutputTokens": 12279,
+      "totalEstimatedUsd": 0.0254,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 24,
+          "conjectureExact": 24,
+          "settledBinaryMatch": 24,
+          "falseSettledClaims": 0,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 22,
+          "tupleExactMatch": 20,
+          "parseErrors": 0
+        },
+        {
+          "trial": 2,
+          "n": 24,
+          "conjectureExact": 24,
+          "settledBinaryMatch": 24,
+          "falseSettledClaims": 0,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 22,
+          "tupleExactMatch": 21,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 24,
+          "conjectureExact": 24,
+          "settledBinaryMatch": 24,
+          "falseSettledClaims": 0,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 22,
+          "tupleExactMatch": 21,
+          "parseErrors": 0
+        }
+      ]
+    },
+    {
+      "configId": "v3-fulltext-glm",
+      "label": "v3-fulltext (GLM-5.3-Flash + full-text tools)",
+      "arm": "auditor-v3-fulltext",
+      "model": "zai-org/GLM-5.3-Flash",
+      "agentVersionTag": "bench-v3-fulltext-glm",
+      "denomPerTrial": 24,
+      "nonSettledPerTrial": 14,
+      "meanConjectureExact": 24,
+      "meanConjecturePct": 100,
+      "meanSettledBinary": 24,
+      "meanSettledBinaryPct": 100,
+      "meanFalseSettledClaims": 0,
+      "meanFalseSettledPct": 0,
+      "meanOutcomeMatch": 22.67,
+      "meanOutcomePct": 94.4,
+      "meanTupleExact": 20.33,
+      "totalParseErrorsAcross3Trials": 0,
+      "p50WallMs": 1199,
+      "p95WallMs": 2658,
+      "totalInputTokens": 205737,
+      "totalOutputTokens": 13297,
+      "totalEstimatedUsd": 0.0388,
+      "perTrial": [
+        {
+          "trial": 1,
+          "n": 24,
+          "conjectureExact": 24,
+          "settledBinaryMatch": 24,
+          "falseSettledClaims": 0,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 22,
+          "tupleExactMatch": 19,
+          "parseErrors": 0
+        },
+        {
+          "trial": 2,
+          "n": 24,
+          "conjectureExact": 24,
+          "settledBinaryMatch": 24,
+          "falseSettledClaims": 0,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 23,
+          "tupleExactMatch": 21,
+          "parseErrors": 0
+        },
+        {
+          "trial": 3,
+          "n": 24,
+          "conjectureExact": 24,
+          "settledBinaryMatch": 24,
+          "falseSettledClaims": 0,
+          "falseSettledDenom": 14,
+          "outcomeMatch": 23,
+          "tupleExactMatch": 21,
+          "parseErrors": 0
+        }
+      ]
+    }
+  ],
+  "heldoutStrata": [
+    {
+      "stratum": "TOP_100",
+      "nPerTrial": 20,
+      "arms": [
+        {
+          "configId": "v1-neutral-glm",
+          "meanConjectureExact": 13.67,
+          "meanOutcomeMatch": 13.67,
+          "meanFalseSettled": 2
+        },
+        {
+          "configId": "v1-neutral-kimi",
+          "meanConjectureExact": 5.67,
+          "meanOutcomeMatch": 8.33,
+          "meanFalseSettled": 4.33
+        },
+        {
+          "configId": "v1-rules-glm",
+          "meanConjectureExact": 14.67,
+          "meanOutcomeMatch": 13.67,
+          "meanFalseSettled": 0
+        },
+        {
+          "configId": "v1-rules-kimi",
+          "meanConjectureExact": 15,
+          "meanOutcomeMatch": 15,
+          "meanFalseSettled": 0
+        },
+        {
+          "configId": "v2-abstract-glm",
+          "meanConjectureExact": 16,
+          "meanOutcomeMatch": 16,
+          "meanFalseSettled": 0
+        },
+        {
+          "configId": "v3-fulltext-glm",
+          "meanConjectureExact": 16.33,
+          "meanOutcomeMatch": 16.33,
+          "meanFalseSettled": 1.67
+        }
+      ]
+    },
+    {
+      "stratum": "NUMBER_FIELD_GRH",
+      "nPerTrial": 20,
+      "arms": [
+        {
+          "configId": "v1-neutral-glm",
+          "meanConjectureExact": 7.67,
+          "meanOutcomeMatch": 13,
+          "meanFalseSettled": 9.67
+        },
+        {
+          "configId": "v1-neutral-kimi",
+          "meanConjectureExact": 7.67,
+          "meanOutcomeMatch": 13.67,
+          "meanFalseSettled": 10.67
+        },
+        {
+          "configId": "v1-rules-glm",
+          "meanConjectureExact": 17.33,
+          "meanOutcomeMatch": 17.33,
+          "meanFalseSettled": 1.67
+        },
+        {
+          "configId": "v1-rules-kimi",
+          "meanConjectureExact": 18.33,
+          "meanOutcomeMatch": 18.33,
+          "meanFalseSettled": 1
+        },
+        {
+          "configId": "v2-abstract-glm",
+          "meanConjectureExact": 16.67,
+          "meanOutcomeMatch": 16.67,
+          "meanFalseSettled": 2
+        },
+        {
+          "configId": "v3-fulltext-glm",
+          "meanConjectureExact": 18,
+          "meanOutcomeMatch": 18,
+          "meanFalseSettled": 1.33
+        }
+      ]
+    },
+    {
+      "stratum": "REST_STRATIFIED",
+      "nPerTrial": 20,
+      "arms": [
+        {
+          "configId": "v1-neutral-glm",
+          "meanConjectureExact": 13.33,
+          "meanOutcomeMatch": 10.67,
+          "meanFalseSettled": 3
+        },
+        {
+          "configId": "v1-neutral-kimi",
+          "meanConjectureExact": 10,
+          "meanOutcomeMatch": 7.67,
+          "meanFalseSettled": 5
+        },
+        {
+          "configId": "v1-rules-glm",
+          "meanConjectureExact": 18,
+          "meanOutcomeMatch": 17.33,
+          "meanFalseSettled": 0
+        },
+        {
+          "configId": "v1-rules-kimi",
+          "meanConjectureExact": 15,
+          "meanOutcomeMatch": 15.67,
+          "meanFalseSettled": 2
+        },
+        {
+          "configId": "v2-abstract-glm",
+          "meanConjectureExact": 16.33,
+          "meanOutcomeMatch": 17,
+          "meanFalseSettled": 0
+        },
+        {
+          "configId": "v3-fulltext-glm",
+          "meanConjectureExact": 17,
+          "meanOutcomeMatch": 16.67,
+          "meanFalseSettled": 1
+        }
+      ]
+    }
+  ]
+}
